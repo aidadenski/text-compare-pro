@@ -180,7 +180,7 @@ export default function LineDiffDisplay({
   return (
     <div className="flex-1 grid grid-cols-1 xl:grid-cols-2 gap-3 min-h-0 overflow-hidden">
       {/* Left Panel */}
-      <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-3 overflow-auto custom-scrollbar min-w-0">
+      <div className="glass-morphism dark:glass-morphism-dark border-rose rounded-2xl p-3 overflow-auto custom-scrollbar min-w-0">
         <h3 className="font-medium mb-3 text-gray-700 dark:text-gray-200">Original</h3>
         <div className="font-mono text-sm overflow-x-hidden">
           {leftLines.map((lineInfo, index) => {
@@ -240,7 +240,7 @@ export default function LineDiffDisplay({
       </div>
 
       {/* Right Panel */}
-      <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-3 overflow-auto custom-scrollbar min-w-0">
+      <div className="glass-morphism dark:glass-morphism-dark border-cyan rounded-2xl p-3 overflow-auto custom-scrollbar min-w-0">
         <h3 className="font-medium mb-3 text-gray-700 dark:text-gray-200">Modified</h3>
         <div className="font-mono text-sm overflow-x-hidden">
           {rightLines.map((lineInfo, index) => {

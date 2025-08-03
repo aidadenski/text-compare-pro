@@ -64,15 +64,15 @@ export default function ScrollIndicator({ diffRefs, totalHeight, isVisible }: Sc
   if (!isVisible || diffPositions.length === 0) return null;
 
   return (
-    <div className="fixed right-4 top-0 h-full w-2 bg-gray-200 dark:bg-gray-700 z-30 pointer-events-none">
+    <div className="fixed right-4 top-0 h-full w-2 bg-gradient-to-b from-purple-200 via-blue-200 to-pink-200 dark:from-purple-800 dark:via-blue-800 dark:to-pink-800 rounded-full opacity-50 z-30 pointer-events-none">
       {/* Diff markers */}
       {diffPositions.map((pos, index) => (
         <motion.div
           key={index}
-          className={`absolute left-0 w-full h-2 ${
+          className={`absolute left-0 w-full h-2 rounded-full ${
             pos.type === 'added' 
-              ? 'bg-green-500' 
-              : 'bg-red-500'
+              ? 'bg-gradient-to-r from-emerald-400 to-teal-400 shadow-lg shadow-emerald-300/50' 
+              : 'bg-gradient-to-r from-rose-400 to-pink-400 shadow-lg shadow-rose-300/50'
           }`}
           style={{ top: `${pos.top}%` }}
           initial={{ opacity: 0, scaleX: 0 }}

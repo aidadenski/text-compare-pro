@@ -251,14 +251,14 @@ export default function TextCompare() {
             transition={{ delay: 0.2 }}
             className="relative"
           >
-            <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-6 h-64">
+            <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-6 h-64 transition-all duration-300 hover:shadow-2xl">
               <div className="flex justify-between items-center mb-3">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                   Original Text
                 </label>
                 <button
                   onClick={() => handleCopy(text1, 1)}
-                  className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 rounded-lg hover:bg-gradient-to-br hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all"
                 >
                   {copied1 ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
                 </button>
@@ -279,14 +279,14 @@ export default function TextCompare() {
             transition={{ delay: 0.3 }}
             className="relative"
           >
-            <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-6 h-64">
+            <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-6 h-64 transition-all duration-300 hover:shadow-2xl">
               <div className="flex justify-between items-center mb-3">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                   Modified Text
                 </label>
                 <button
                   onClick={() => handleCopy(text2, 2)}
-                  className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 rounded-lg hover:bg-gradient-to-br hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all"
                 >
                   {copied2 ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
                 </button>
@@ -308,7 +308,7 @@ export default function TextCompare() {
           transition={{ delay: 0.4 }}
           className="max-w-7xl mx-auto mt-6"
         >
-          <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-6">
+          <div className="glass-morphism dark:glass-morphism-dark border-indigo rounded-2xl p-6">
             <div className="flex flex-wrap items-center gap-4">
               {/* Format Selector */}
               <div className="flex items-center gap-2">
@@ -316,7 +316,7 @@ export default function TextCompare() {
                 <select
                   value={format}
                   onChange={(e) => setFormat(e.target.value)}
-                  className="bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="bg-white/50 dark:bg-gray-800/50 border border-blue-200 dark:border-purple-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                 >
                   {formatOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -332,7 +332,7 @@ export default function TextCompare() {
                 <select
                   value={diffOptions.mode}
                   onChange={(e) => setDiffOptions({ ...diffOptions, mode: e.target.value as DiffMode })}
-                  className="bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="bg-white/50 dark:bg-gray-800/50 border border-blue-200 dark:border-purple-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                 >
                   {diffModes.map(mode => (
                     <option key={mode.value} value={mode.value}>
@@ -368,7 +368,7 @@ export default function TextCompare() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleCompare}
-                className="ml-auto bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transition-shadow"
+                className="ml-auto bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transition-all duration-300"
               >
                 Compare
               </motion.button>
@@ -477,7 +477,7 @@ export default function TextCompare() {
           >
             <div className="max-w-7xl mx-auto h-full flex flex-col">
               {/* Stats Bar - Normal Position */}
-              <div ref={statsBarRef} className="glass-morphism dark:glass-morphism-dark rounded-2xl p-4 mb-4">
+              <div ref={statsBarRef} className="glass-morphism dark:glass-morphism-dark border-emerald rounded-2xl p-4 mb-4">
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   <div className="flex items-center gap-4">
                     {diffResult.stats.total === 0 ? (
