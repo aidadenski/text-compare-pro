@@ -36,6 +36,10 @@ export default function LineDiffDisplay({
     const left: LineInfo[] = [];
     const right: LineInfo[] = [];
     
+    // Split texts into lines for processing
+    const originalLines1 = text1.split('\n');
+    const originalLines2 = text2.split('\n');
+    
     // Apply preprocessing if needed
     let processedText1 = text1;
     let processedText2 = text2;
@@ -54,30 +58,67 @@ export default function LineDiffDisplay({
     const changes = Diff.diffLines(processedText1, processedText2);
     let leftLineNumber = 1;
     let rightLineNumber = 1;
+    let changeIndex = 0;
     
-    changes.forEach((change) => {
+    // Process changes and try to pair removed/added lines
+    while (changeIndex < changes.length) {
+      const change = changes[changeIndex];
       const lines = change.value.split('\n').filter((line, index, arr) => 
         index < arr.length - 1 || line !== ''
       );
       
       if (change.removed) {
-        // Lines only in left side
-        lines.forEach(() => {
-          left.push({ 
-            content: text1.split('\n')[leftLineNumber - 1] || '', 
-            type: 'removed',
-            originalLineNumber: leftLineNumber++
+        // Check if next change is added (potential modification)
+        const nextChange = changes[changeIndex + 1];
+        if (nextChange && nextChange.added) {
+          const addedLines = nextChange.value.split('\n').filter((line, index, arr) => 
+            index < arr.length - 1 || line !== ''
+          );
+          
+          // Pair up removed and added lines
+          const maxLines = Math.max(lines.length, addedLines.length);
+          for (let i = 0; i < maxLines; i++) {
+            if (i < lines.length) {
+              left.push({ 
+                content: originalLines1[leftLineNumber - 1] || '', 
+                type: 'removed',
+                originalLineNumber: leftLineNumber++
+              });
+            } else {
+              left.push({ content: '', type: 'empty' });
+            }
+            
+            if (i < addedLines.length) {
+              right.push({ 
+                content: originalLines2[rightLineNumber - 1] || '', 
+                type: 'added',
+                originalLineNumber: rightLineNumber++
+              });
+            } else {
+              right.push({ content: '', type: 'empty' });
+            }
+          }
+          
+          // Skip the next change since we've processed it
+          changeIndex += 2;
+          continue;
+        } else {
+          // Lines only in left side
+          lines.forEach(() => {
+            left.push({ 
+              content: originalLines1[leftLineNumber - 1] || '', 
+              type: 'removed',
+              originalLineNumber: leftLineNumber++
+            });
+            right.push({ content: '', type: 'empty' });
           });
-          // Add empty placeholder in right side
-          right.push({ content: '', type: 'empty' });
-        });
+        }
       } else if (change.added) {
-        // Lines only in right side
+        // Lines only in right side (not paired with removed)
         lines.forEach(() => {
-          // Add empty placeholder in left side
           left.push({ content: '', type: 'empty' });
           right.push({ 
-            content: text2.split('\n')[rightLineNumber - 1] || '', 
+            content: originalLines2[rightLineNumber - 1] || '', 
             type: 'added',
             originalLineNumber: rightLineNumber++
           });
@@ -85,8 +126,8 @@ export default function LineDiffDisplay({
       } else {
         // Unchanged lines
         lines.forEach(() => {
-          const originalLeftLine = text1.split('\n')[leftLineNumber - 1] || '';
-          const originalRightLine = text2.split('\n')[rightLineNumber - 1] || '';
+          const originalLeftLine = originalLines1[leftLineNumber - 1] || '';
+          const originalRightLine = originalLines2[rightLineNumber - 1] || '';
           
           left.push({ 
             content: originalLeftLine, 
@@ -100,7 +141,9 @@ export default function LineDiffDisplay({
           });
         });
       }
-    });
+      
+      changeIndex++;
+    }
     
     return { leftLines: left, rightLines: right };
   }, [text1, text2, ignoreCase, ignoreWhitespace]);
