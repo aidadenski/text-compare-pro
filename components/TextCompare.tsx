@@ -403,12 +403,12 @@ export default function TextCompare() {
 
       {/* Floating Stats Bar - Shows when scrolled */}
       {showDiff && diffResult && isScrolled && (
-        <div className="fixed top-1/2 -translate-y-1/2 right-4 z-50">
+        <div className="fixed top-1/2 -translate-y-1/2 right-8 z-50">
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="glass-morphism dark:glass-morphism-dark rounded-2xl p-4 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 shadow-xl border border-white/20"
+            className="glass-morphism dark:glass-morphism-dark rounded-2xl p-4 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 shadow-xl border border-white/10"
           >
             <div className="flex flex-col gap-3">
               {diffResult.stats.total === 0 ? (
