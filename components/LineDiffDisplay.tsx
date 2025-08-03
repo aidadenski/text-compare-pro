@@ -185,10 +185,19 @@ export default function LineDiffDisplay({
         <div className="font-mono text-sm overflow-x-hidden">
           {leftLines.map((lineInfo, index) => {
             const rightLineInfo = rightLines[index];
-            const showInlineDiff = diffMode !== 'lines' && 
-                                 lineInfo.type === 'unchanged' && 
-                                 rightLineInfo?.type === 'unchanged' &&
-                                 lineInfo.content !== rightLineInfo.content;
+            // Show inline diff for non-line modes when:
+            // 1. Both lines exist and are marked as unchanged but content differs (ignoreCase/ignoreWhitespace)
+            // 2. Both lines exist and one is removed/added (for character/word level diff)
+            const showInlineDiff = diffMode !== 'lines' && (
+              (lineInfo.type === 'unchanged' && 
+               rightLineInfo?.type === 'unchanged' &&
+               lineInfo.content !== rightLineInfo.content) ||
+              (lineInfo.type === 'removed' && rightLineInfo?.type === 'added' &&
+               lineInfo.content && rightLineInfo.content)
+            );
+            
+            // Check if this is a complete line deletion (no corresponding line on right)
+            const isCompleteDeletion = lineInfo.type === 'removed' && rightLineInfo?.type === 'empty';
             
             return (
               <div
@@ -197,7 +206,8 @@ export default function LineDiffDisplay({
                   leftRefs.current[index] = el;
                 }}
                 className={`px-3 py-1 flex items-start ${
-                  lineInfo.type === 'removed' ? 'diff-line-removed' : ''
+                  lineInfo.type === 'removed' && (!showInlineDiff || isCompleteDeletion) ? 'diff-line-removed' : 
+                  lineInfo.type === 'removed' && showInlineDiff && !isCompleteDeletion ? 'diff-line-removed-light' : ''
                 }`}
               >
                 <span className="text-gray-500 text-xs mr-3 select-none flex-shrink-0 inline-block w-12 text-right">
@@ -217,7 +227,7 @@ export default function LineDiffDisplay({
                     />
                   ) : (
                     <span className={
-                      lineInfo.type === 'removed' ? 'diff-content-removed whitespace-pre' : 'whitespace-pre'
+                      lineInfo.type === 'removed' && (diffMode === 'lines' || isCompleteDeletion) ? 'diff-content-removed whitespace-pre' : 'whitespace-pre'
                     }>
                       {lineInfo.content}
                     </span>
@@ -235,10 +245,19 @@ export default function LineDiffDisplay({
         <div className="font-mono text-sm overflow-x-hidden">
           {rightLines.map((lineInfo, index) => {
             const leftLineInfo = leftLines[index];
-            const showInlineDiff = diffMode !== 'lines' && 
-                                 lineInfo.type === 'unchanged' && 
-                                 leftLineInfo?.type === 'unchanged' &&
-                                 lineInfo.content !== leftLineInfo.content;
+            // Show inline diff for non-line modes when:
+            // 1. Both lines exist and are marked as unchanged but content differs (ignoreCase/ignoreWhitespace)
+            // 2. Both lines exist and one is added/removed (for character/word level diff)
+            const showInlineDiff = diffMode !== 'lines' && (
+              (lineInfo.type === 'unchanged' && 
+               leftLineInfo?.type === 'unchanged' &&
+               lineInfo.content !== leftLineInfo.content) ||
+              (lineInfo.type === 'added' && leftLineInfo?.type === 'removed' &&
+               lineInfo.content && leftLineInfo.content)
+            );
+            
+            // Check if this is a complete line addition (no corresponding line on left)
+            const isCompleteAddition = lineInfo.type === 'added' && leftLineInfo?.type === 'empty';
             
             return (
               <div
@@ -247,7 +266,8 @@ export default function LineDiffDisplay({
                   rightRefs.current[index] = el;
                 }}
                 className={`px-3 py-1 flex items-start ${
-                  lineInfo.type === 'added' ? 'diff-line-added' : ''
+                  lineInfo.type === 'added' && (!showInlineDiff || isCompleteAddition) ? 'diff-line-added' : 
+                  lineInfo.type === 'added' && showInlineDiff && !isCompleteAddition ? 'diff-line-added-light' : ''
                 }`}
               >
                 <span className="text-gray-500 text-xs mr-3 select-none flex-shrink-0 inline-block w-12 text-right">
@@ -267,7 +287,7 @@ export default function LineDiffDisplay({
                     />
                   ) : (
                     <span className={
-                      lineInfo.type === 'added' ? 'diff-content-added whitespace-pre' : 'whitespace-pre'
+                      lineInfo.type === 'added' && (diffMode === 'lines' || isCompleteAddition) ? 'diff-content-added whitespace-pre' : 'whitespace-pre'
                     }>
                       {lineInfo.content}
                     </span>

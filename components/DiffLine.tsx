@@ -20,26 +20,9 @@ export default function DiffLine({
   ignoreCase = false,
   ignoreWhitespace = false
 }: DiffLineProps) {
-  // For line mode, just return the whole line with appropriate styling
+  // For line mode, this component should not be used
   if (mode === 'lines') {
-    const isDifferent = leftLine !== rightLine;
-    if (!isDifferent) {
-      return <span className="whitespace-pre">{side === 'left' ? leftLine : rightLine}</span>;
-    }
-    
-    if (side === 'left' && leftLine && !rightLine) {
-      return <span className="diff-content-removed whitespace-pre">{leftLine}</span>;
-    }
-    if (side === 'right' && rightLine && !leftLine) {
-      return <span className="diff-content-added whitespace-pre">{rightLine}</span>;
-    }
-    if (leftLine !== rightLine) {
-      return (
-        <span className={side === 'left' ? 'diff-content-removed' : 'diff-content-added'}>
-          <span className="whitespace-pre">{side === 'left' ? leftLine : rightLine}</span>
-        </span>
-      );
-    }
+    return <span className="whitespace-pre">{side === 'left' ? leftLine : rightLine}</span>;
   }
 
   // For other modes, compute inline diff
