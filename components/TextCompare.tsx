@@ -24,8 +24,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { computeDiff, formatText, DiffOptions, DiffMode } from '@/utils/diff';
-import ScrollIndicator from './ScrollIndicator';
 import LineDiffDisplay from './LineDiffDisplay';
+import ScrollIndicator from './ScrollIndicator';
 
 const formatOptions = [
   { value: 'plain', label: 'Plain Text', icon: FileText },
@@ -67,6 +67,7 @@ export default function TextCompare() {
   
   const diffRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const statsBarRef = useRef<HTMLDivElement>(null);
+  const isNavigating = useRef(false);
 
   const formattedText1 = useMemo(() => formatText(text1, format), [text1, format]);
   const formattedText2 = useMemo(() => formatText(text2, format), [text2, format]);
@@ -98,63 +99,78 @@ export default function TextCompare() {
     }
   }, []);
 
-  const navigateToDiff = useCallback((direction: 'prev' | 'next', scrollTo: boolean = true) => {
+  const navigateToDiff = useCallback((direction: 'prev' | 'next') => {
     if (!diffResult || diffCount === 0) return;
-    
-    let newIndex = currentDiffIndex;
+
+    // 1. 设置一个标记，表示我们正在通过代码主动导航
+    isNavigating.current = true;
+
+    let targetDiffIndex;
     if (direction === 'next') {
-      newIndex = (currentDiffIndex + 1) % diffCount;
+      targetDiffIndex = (currentDiffIndex + 1) % diffCount;
     } else {
-      newIndex = currentDiffIndex === 0 ? diffCount - 1 : currentDiffIndex - 1;
+      targetDiffIndex = (currentDiffIndex - 1 + diffCount) % diffCount;
     }
+
+    // 2. 立即更新 currentDiffIndex
+    setCurrentDiffIndex(targetDiffIndex);
     
-    setCurrentDiffIndex(newIndex);
-    
-    if (scrollTo) {
-      // Find the newIndex-th diff element
-      let diffCounter = 0;
-      for (const [, element] of diffRefs.current.entries()) {
-        if (diffCounter === newIndex) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          break;
-        }
-        diffCounter++;
-      }
+    // 3. 滚动到目标元素
+    const diffElements = Array.from(diffRefs.current.values());
+    if (targetDiffIndex < diffElements.length) {
+      // 现在 diffRefs 中存储的是每个差异组的第一个元素
+      // 所以可以直接使用 targetDiffIndex
+      diffElements[targetDiffIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+
+    // 4. 设置一个定时器，在滚动动画结束后清除标记。
+    //    这样用户自己手动滚动时，滚动监听又能正常工作了。
+    //    700ms 通常足够完成一个平滑滚动动画。
+    setTimeout(() => {
+      isNavigating.current = false;
+    }, 700);
+
   }, [currentDiffIndex, diffCount, diffResult]);
 
   // Monitor scroll position and document height
   useEffect(() => {
     const handleScroll = () => {
+      // 如果是代码触发的导航滚动，则忽略本次滚动事件，防止冲突
+      if (isNavigating.current) {
+        return;
+      }
+
       if (statsBarRef.current) {
         const rect = statsBarRef.current.getBoundingClientRect();
         setIsScrolled(rect.bottom < 0);
       }
       
       // Update current diff index based on scroll position
-      if (diffRefs.current.size > 0) {
+      if (diffRefs.current.size > 0 && diffCount > 0) {
+        const diffElements = Array.from(diffRefs.current.values());
         const viewportCenter = window.innerHeight / 2;
+        
+        // 找到最接近视口中心的差异组
         let closestIndex = 0;
         let closestDistance = Infinity;
         
-        let index = 0;
-        for (const [, element] of diffRefs.current.entries()) {
+        diffElements.forEach((element, index) => {
           const rect = element.getBoundingClientRect();
-          const elementCenter = rect.top + rect.height / 2;
-          const distance = Math.abs(elementCenter - viewportCenter);
+          const elementTop = rect.top;
+          const distance = Math.abs(elementTop - viewportCenter);
           
           if (distance < closestDistance) {
             closestDistance = distance;
             closestIndex = index;
           }
-          index++;
-        }
+        });
         
-        if (closestIndex !== currentDiffIndex) {
+        if (closestIndex !== currentDiffIndex && closestIndex >= 0 && closestIndex < diffCount) {
           setCurrentDiffIndex(closestIndex);
         }
       }
     };
+
 
     const updateDocumentHeight = () => {
       setDocumentHeight(document.documentElement.scrollHeight);
@@ -171,13 +187,14 @@ export default function TextCompare() {
     if (document.body) {
       observer.observe(document.body);
     }
+    
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', updateDocumentHeight);
       observer.disconnect();
     };
-  }, [showDiff, currentDiffIndex]);
+  }, [showDiff, currentDiffIndex, diffCount]);
 
 
   return (
@@ -368,7 +385,7 @@ export default function TextCompare() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="glass-morphism dark:glass-morphism-dark rounded-2xl p-4 backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 shadow-xl border border-white/30"
+            className="glass-morphism dark:glass-morphism-dark rounded-2xl p-4 backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 shadow-xl border border-white/20"
           >
             <div className="flex flex-col gap-3">
               {diffResult.stats.total === 0 ? (

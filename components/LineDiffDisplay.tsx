@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
+import * as Diff from 'diff';
 import DiffLine from './DiffLine';
 
 interface LineDiffDisplayProps {
@@ -11,6 +12,13 @@ interface LineDiffDisplayProps {
   ignoreWhitespace: boolean;
   format: string;
   diffRefs: React.MutableRefObject<Map<number, HTMLDivElement>>;
+  onDiffCountChange?: (count: number) => void;
+}
+
+interface LineInfo {
+  content: string;
+  type: 'added' | 'removed' | 'unchanged' | 'empty';
+  originalLineNumber?: number;
 }
 
 export default function LineDiffDisplay({
@@ -19,11 +27,83 @@ export default function LineDiffDisplay({
   diffMode,
   ignoreCase,
   ignoreWhitespace,
-  diffRefs
+  diffRefs,
+  onDiffCountChange
 }: LineDiffDisplayProps) {
-  const lines1 = text1.split('\n');
-  const lines2 = text2.split('\n');
-  const maxLines = Math.max(lines1.length, lines2.length);
+  
+  // Use Diff.diffLines to get proper line-level diff
+  const { leftLines, rightLines } = useMemo(() => {
+    const left: LineInfo[] = [];
+    const right: LineInfo[] = [];
+    
+    // Apply preprocessing if needed
+    let processedText1 = text1;
+    let processedText2 = text2;
+    
+    if (ignoreCase) {
+      processedText1 = processedText1.toLowerCase();
+      processedText2 = processedText2.toLowerCase();
+    }
+    
+    if (ignoreWhitespace) {
+      processedText1 = processedText1.replace(/\s+/g, ' ').trim();
+      processedText2 = processedText2.replace(/\s+/g, ' ').trim();
+    }
+    
+    // Get line diff
+    const changes = Diff.diffLines(processedText1, processedText2);
+    let leftLineNumber = 1;
+    let rightLineNumber = 1;
+    
+    changes.forEach((change) => {
+      const lines = change.value.split('\n').filter((line, index, arr) => 
+        index < arr.length - 1 || line !== ''
+      );
+      
+      if (change.removed) {
+        // Lines only in left side
+        lines.forEach(() => {
+          left.push({ 
+            content: text1.split('\n')[leftLineNumber - 1] || '', 
+            type: 'removed',
+            originalLineNumber: leftLineNumber++
+          });
+          // Add empty placeholder in right side
+          right.push({ content: '', type: 'empty' });
+        });
+      } else if (change.added) {
+        // Lines only in right side
+        lines.forEach(() => {
+          // Add empty placeholder in left side
+          left.push({ content: '', type: 'empty' });
+          right.push({ 
+            content: text2.split('\n')[rightLineNumber - 1] || '', 
+            type: 'added',
+            originalLineNumber: rightLineNumber++
+          });
+        });
+      } else {
+        // Unchanged lines
+        lines.forEach(() => {
+          const originalLeftLine = text1.split('\n')[leftLineNumber - 1] || '';
+          const originalRightLine = text2.split('\n')[rightLineNumber - 1] || '';
+          
+          left.push({ 
+            content: originalLeftLine, 
+            type: 'unchanged',
+            originalLineNumber: leftLineNumber++
+          });
+          right.push({ 
+            content: originalRightLine, 
+            type: 'unchanged',
+            originalLineNumber: rightLineNumber++
+          });
+        });
+      }
+    });
+    
+    return { leftLines: left, rightLines: right };
+  }, [text1, text2, ignoreCase, ignoreWhitespace]);
   
   const leftRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rightRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -31,22 +111,28 @@ export default function LineDiffDisplay({
   useEffect(() => {
     // Clear previous refs
     diffRefs.current.clear();
-    let diffIndex = 0;
+    let diffGroupIndex = 0;
+    let inDiffBlock = false;
 
-    // Check each line pair for differences
-    for (let i = 0; i < maxLines; i++) {
-      const leftLine = lines1[i] || '';
-      const rightLine = lines2[i] || '';
-      const hasDiff = leftLine !== rightLine;
-      
-      if (hasDiff) {
-        // Add both left and right refs if they differ
-        if (leftRefs.current[i]) {
-          diffRefs.current.set(diffIndex++, leftRefs.current[i]!);
+    // Group consecutive diff lines into diff blocks
+    leftLines.forEach((lineInfo, index) => {
+      if (lineInfo.type !== 'unchanged') {
+        if (!inDiffBlock && leftRefs.current[index]) {
+          // Start of a new diff block
+          diffRefs.current.set(diffGroupIndex++, leftRefs.current[index]!);
+          inDiffBlock = true;
         }
+      } else {
+        // End of diff block
+        inDiffBlock = false;
       }
+    });
+    
+    // Notify parent component about the actual diff count
+    if (onDiffCountChange) {
+      onDiffCountChange(diffGroupIndex);
     }
-  }, [text1, text2, diffRefs, lines1, lines2, maxLines]);
+  }, [leftLines, diffRefs, onDiffCountChange]);
 
   return (
     <div className="flex-1 grid grid-cols-1 xl:grid-cols-2 gap-3 min-h-0 overflow-hidden">
@@ -54,11 +140,12 @@ export default function LineDiffDisplay({
       <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-3 overflow-auto custom-scrollbar min-w-0">
         <h3 className="font-medium mb-3 text-gray-700 dark:text-gray-200">Original</h3>
         <div className="font-mono text-sm overflow-x-hidden">
-          {Array.from({ length: maxLines }).map((_, index) => {
-            const line = lines1[index] || '';
-            const opposingLine = lines2[index] || '';
-            const hasDiff = line !== opposingLine;
-            const isEmpty = !line && opposingLine;
+          {leftLines.map((lineInfo, index) => {
+            const rightLineInfo = rightLines[index];
+            const showInlineDiff = diffMode !== 'lines' && 
+                                 lineInfo.type === 'unchanged' && 
+                                 rightLineInfo?.type === 'unchanged' &&
+                                 lineInfo.content !== rightLineInfo.content;
             
             return (
               <div
@@ -67,24 +154,30 @@ export default function LineDiffDisplay({
                   leftRefs.current[index] = el;
                 }}
                 className={`px-3 py-1 flex items-start ${
-                  hasDiff && !isEmpty ? 'diff-line-removed' : ''
+                  lineInfo.type === 'removed' ? 'diff-line-removed' : ''
                 }`}
               >
                 <span className="text-gray-500 text-xs mr-3 select-none flex-shrink-0 inline-block w-12 text-right">
-                  {index + 1}
+                  {lineInfo.originalLineNumber || ''}
                 </span>
                 <div className="flex-1 line-content">
-                  {isEmpty ? (
+                  {lineInfo.type === 'empty' ? (
                     <span className="text-gray-400">&nbsp;</span>
-                  ) : (
+                  ) : showInlineDiff ? (
                     <DiffLine
-                      leftLine={line}
-                      rightLine={opposingLine}
+                      leftLine={lineInfo.content}
+                      rightLine={rightLineInfo.content}
                       mode={diffMode}
                       side="left"
                       ignoreCase={ignoreCase}
                       ignoreWhitespace={ignoreWhitespace}
                     />
+                  ) : (
+                    <span className={
+                      lineInfo.type === 'removed' ? 'diff-content-removed whitespace-pre' : 'whitespace-pre'
+                    }>
+                      {lineInfo.content}
+                    </span>
                   )}
                 </div>
               </div>
@@ -97,11 +190,12 @@ export default function LineDiffDisplay({
       <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-3 overflow-auto custom-scrollbar min-w-0">
         <h3 className="font-medium mb-3 text-gray-700 dark:text-gray-200">Modified</h3>
         <div className="font-mono text-sm overflow-x-hidden">
-          {Array.from({ length: maxLines }).map((_, index) => {
-            const line = lines2[index] || '';
-            const opposingLine = lines1[index] || '';
-            const hasDiff = line !== opposingLine;
-            const isEmpty = !line && opposingLine;
+          {rightLines.map((lineInfo, index) => {
+            const leftLineInfo = leftLines[index];
+            const showInlineDiff = diffMode !== 'lines' && 
+                                 lineInfo.type === 'unchanged' && 
+                                 leftLineInfo?.type === 'unchanged' &&
+                                 lineInfo.content !== leftLineInfo.content;
             
             return (
               <div
@@ -110,24 +204,30 @@ export default function LineDiffDisplay({
                   rightRefs.current[index] = el;
                 }}
                 className={`px-3 py-1 flex items-start ${
-                  hasDiff && !isEmpty ? 'diff-line-added' : ''
+                  lineInfo.type === 'added' ? 'diff-line-added' : ''
                 }`}
               >
                 <span className="text-gray-500 text-xs mr-3 select-none flex-shrink-0 inline-block w-12 text-right">
-                  {index + 1}
+                  {lineInfo.originalLineNumber || ''}
                 </span>
                 <div className="flex-1 line-content">
-                  {isEmpty ? (
+                  {lineInfo.type === 'empty' ? (
                     <span className="text-gray-400">&nbsp;</span>
-                  ) : (
+                  ) : showInlineDiff ? (
                     <DiffLine
-                      leftLine={opposingLine}
-                      rightLine={line}
+                      leftLine={leftLineInfo.content}
+                      rightLine={lineInfo.content}
                       mode={diffMode}
                       side="right"
                       ignoreCase={ignoreCase}
                       ignoreWhitespace={ignoreWhitespace}
                     />
+                  ) : (
+                    <span className={
+                      lineInfo.type === 'added' ? 'diff-content-added whitespace-pre' : 'whitespace-pre'
+                    }>
+                      {lineInfo.content}
+                    </span>
                   )}
                 </div>
               </div>

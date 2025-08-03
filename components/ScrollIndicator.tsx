@@ -62,25 +62,12 @@ export default function ScrollIndicator({ diffRefs, totalHeight, isVisible }: Sc
   if (!isVisible || diffPositions.length === 0) return null;
 
   return (
-    <div className="fixed right-0 top-0 h-full w-3 bg-gray-200 dark:bg-gray-700 z-30">
-      {/* Viewport indicator */}
-      <motion.div
-        className="absolute left-0 w-full bg-gray-400 dark:bg-gray-500 opacity-30"
-        style={{
-          top: `${scrollPercentage}%`,
-          height: `${viewportHeight}%`
-        }}
-        animate={{
-          top: `${scrollPercentage}%`
-        }}
-        transition={{ duration: 0.1 }}
-      />
-      
+    <div className="fixed right-4 top-0 h-full w-2 bg-gray-200 dark:bg-gray-700 z-30 pointer-events-none">
       {/* Diff markers */}
       {diffPositions.map((pos, index) => (
         <motion.div
           key={index}
-          className={`absolute left-0 w-full h-1 ${
+          className={`absolute left-0 w-full h-2 ${
             pos.type === 'added' 
               ? 'bg-green-500' 
               : 'bg-red-500'
