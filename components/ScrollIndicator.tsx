@@ -26,8 +26,10 @@ export default function ScrollIndicator({ diffRefs, totalHeight, isVisible }: Sc
       const percentage = (absoluteTop / totalHeight) * 100;
       
       // Determine type based on element classes
-      const isAdded = element.classList.contains('diff-line-added');
-      const isRemoved = element.classList.contains('diff-line-removed');
+      const isAdded = element.classList.contains('diff-line-added') || 
+                      element.classList.contains('diff-line-added-light');
+      const isRemoved = element.classList.contains('diff-line-removed') || 
+                        element.classList.contains('diff-line-removed-light');
       
       if (isAdded || isRemoved) {
         positions.push({
