@@ -1,0 +1,527 @@
+'use client';
+
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  ChevronUp, 
+  ChevronDown, 
+  Copy, 
+  Check,
+  Settings,
+  FileText,
+  Code,
+  Database,
+  Braces,
+  Hash,
+  Type,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  FileCode2,
+  Plus,
+  Minus,
+  AlertCircle,
+  CheckCircle2
+} from 'lucide-react';
+import { computeDiff, formatText, DiffOptions, DiffMode } from '@/utils/diff';
+import ScrollIndicator from './ScrollIndicator';
+import LineDiffDisplay from './LineDiffDisplay';
+
+const formatOptions = [
+  { value: 'plain', label: 'Plain Text', icon: FileText },
+  { value: 'json', label: 'JSON', icon: Braces },
+  { value: 'javascript', label: 'JavaScript', icon: Code },
+  { value: 'typescript', label: 'TypeScript', icon: Code },
+  { value: 'python', label: 'Python', icon: Code },
+  { value: 'sql', label: 'SQL', icon: Database },
+  { value: 'java', label: 'Java', icon: Code },
+  { value: 'csharp', label: 'C#', icon: Hash },
+  { value: 'html', label: 'HTML', icon: Code },
+  { value: 'css', label: 'CSS', icon: Type },
+];
+
+const diffModes: { value: DiffMode; label: string }[] = [
+  { value: 'lines', label: 'Lines' },
+  { value: 'words', label: 'Words' },
+  { value: 'chars', label: 'Characters' },
+  { value: 'sentences', label: 'Sentences' },
+];
+
+export default function TextCompare() {
+  const [text1, setText1] = useState('');
+  const [text2, setText2] = useState('');
+  const [diffOptions, setDiffOptions] = useState<DiffOptions>({
+    mode: 'lines',
+    ignoreCase: false,
+    ignoreWhitespace: false,
+    contextSize: 3,
+  });
+  const [format, setFormat] = useState('plain');
+  const [showDiff, setShowDiff] = useState(false);
+  const [copied1, setCopied1] = useState(false);
+  const [copied2, setCopied2] = useState(false);
+  const [currentDiffIndex, setCurrentDiffIndex] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [documentHeight, setDocumentHeight] = useState(0);
+  
+  const diffRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const statsBarRef = useRef<HTMLDivElement>(null);
+
+  const formattedText1 = useMemo(() => formatText(text1, format), [text1, format]);
+  const formattedText2 = useMemo(() => formatText(text2, format), [text2, format]);
+
+  const diffResult = useMemo(() => {
+    if (!showDiff) return null;
+    return computeDiff(formattedText1, formattedText2, diffOptions);
+  }, [formattedText1, formattedText2, diffOptions, showDiff]);
+
+  const diffCount = useMemo(() => {
+    if (!diffResult) return 0;
+    return diffResult.stats.total;
+  }, [diffResult]);
+
+  const handleCompare = useCallback(() => {
+    setShowDiff(true);
+    setCurrentDiffIndex(0);
+    diffRefs.current.clear();
+  }, []);
+
+  const handleCopy = useCallback(async (text: string, side: 1 | 2) => {
+    await navigator.clipboard.writeText(text);
+    if (side === 1) {
+      setCopied1(true);
+      setTimeout(() => setCopied1(false), 2000);
+    } else {
+      setCopied2(true);
+      setTimeout(() => setCopied2(false), 2000);
+    }
+  }, []);
+
+  const navigateToDiff = useCallback((direction: 'prev' | 'next', scrollTo: boolean = true) => {
+    if (!diffResult || diffCount === 0) return;
+    
+    let newIndex = currentDiffIndex;
+    if (direction === 'next') {
+      newIndex = (currentDiffIndex + 1) % diffCount;
+    } else {
+      newIndex = currentDiffIndex === 0 ? diffCount - 1 : currentDiffIndex - 1;
+    }
+    
+    setCurrentDiffIndex(newIndex);
+    
+    if (scrollTo) {
+      // Find the newIndex-th diff element
+      let diffCounter = 0;
+      for (const [, element] of diffRefs.current.entries()) {
+        if (diffCounter === newIndex) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          break;
+        }
+        diffCounter++;
+      }
+    }
+  }, [currentDiffIndex, diffCount, diffResult]);
+
+  // Monitor scroll position and document height
+  useEffect(() => {
+    const handleScroll = () => {
+      if (statsBarRef.current) {
+        const rect = statsBarRef.current.getBoundingClientRect();
+        setIsScrolled(rect.bottom < 0);
+      }
+      
+      // Update current diff index based on scroll position
+      if (diffRefs.current.size > 0) {
+        const viewportCenter = window.innerHeight / 2;
+        let closestIndex = 0;
+        let closestDistance = Infinity;
+        
+        let index = 0;
+        for (const [, element] of diffRefs.current.entries()) {
+          const rect = element.getBoundingClientRect();
+          const elementCenter = rect.top + rect.height / 2;
+          const distance = Math.abs(elementCenter - viewportCenter);
+          
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+          }
+          index++;
+        }
+        
+        if (closestIndex !== currentDiffIndex) {
+          setCurrentDiffIndex(closestIndex);
+        }
+      }
+    };
+
+    const updateDocumentHeight = () => {
+      setDocumentHeight(document.documentElement.scrollHeight);
+    };
+
+    handleScroll();
+    updateDocumentHeight();
+    
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', updateDocumentHeight);
+    
+    // Update height when diff results change
+    const observer = new ResizeObserver(updateDocumentHeight);
+    if (document.body) {
+      observer.observe(document.body);
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', updateDocumentHeight);
+      observer.disconnect();
+    };
+  }, [showDiff, currentDiffIndex]);
+
+
+  return (
+    <div className={`${isFullscreen ? 'fixed inset-0 z-40 bg-background' : ''} flex flex-col h-full`}>
+      {/* Header */}
+      <header className="px-6 py-8 text-center">
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4"
+        >
+          Text Compare Pro
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto"
+        >
+          Professional text comparison with advanced diff algorithms, syntax highlighting, and real-time analysis
+        </motion.p>
+      </header>
+
+      {/* Input Section */}
+      <div className="px-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-7xl mx-auto">
+          {/* Left Input */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="relative"
+          >
+            <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-6 h-64">
+              <div className="flex justify-between items-center mb-3">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                  Original Text
+                </label>
+                <button
+                  onClick={() => handleCopy(text1, 1)}
+                  className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {copied1 ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                </button>
+              </div>
+              <textarea
+                value={text1}
+                onChange={(e) => setText1(e.target.value)}
+                placeholder="Paste or type your original text here..."
+                className="w-full h-40 bg-transparent resize-none outline-none placeholder-gray-400 custom-scrollbar"
+              />
+            </div>
+          </motion.div>
+
+          {/* Right Input */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="relative"
+          >
+            <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-6 h-64">
+              <div className="flex justify-between items-center mb-3">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                  Modified Text
+                </label>
+                <button
+                  onClick={() => handleCopy(text2, 2)}
+                  className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {copied2 ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                </button>
+              </div>
+              <textarea
+                value={text2}
+                onChange={(e) => setText2(e.target.value)}
+                placeholder="Paste or type your modified text here..."
+                className="w-full h-40 bg-transparent resize-none outline-none placeholder-gray-400 custom-scrollbar"
+              />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Controls */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="max-w-7xl mx-auto mt-6"
+        >
+          <div className="glass-morphism dark:glass-morphism-dark rounded-2xl p-6">
+            <div className="flex flex-wrap items-center gap-4">
+              {/* Format Selector */}
+              <div className="flex items-center gap-2">
+                <Settings size={18} className="text-gray-500" />
+                <select
+                  value={format}
+                  onChange={(e) => setFormat(e.target.value)}
+                  className="bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {formatOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Diff Mode */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-300">Mode:</span>
+                <select
+                  value={diffOptions.mode}
+                  onChange={(e) => setDiffOptions({ ...diffOptions, mode: e.target.value as DiffMode })}
+                  className="bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {diffModes.map(mode => (
+                    <option key={mode.value} value={mode.value}>
+                      {mode.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Options */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={diffOptions.ignoreCase}
+                  onChange={(e) => setDiffOptions({ ...diffOptions, ignoreCase: e.target.checked })}
+                  className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-600 dark:text-gray-300">Ignore Case</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={diffOptions.ignoreWhitespace}
+                  onChange={(e) => setDiffOptions({ ...diffOptions, ignoreWhitespace: e.target.checked })}
+                  className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-600 dark:text-gray-300">Ignore Whitespace</span>
+              </label>
+
+              {/* Compare Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleCompare}
+                className="ml-auto bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transition-shadow"
+              >
+                Compare
+              </motion.button>
+
+              {/* Reset Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setText1('');
+                  setText2('');
+                  setShowDiff(false);
+                }}
+                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                <RotateCcw size={18} />
+              </motion.button>
+
+              {/* Fullscreen Toggle */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Floating Stats Bar - Shows when scrolled */}
+      {showDiff && diffResult && isScrolled && (
+        <div className="fixed top-1/2 -translate-y-1/2 right-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="glass-morphism dark:glass-morphism-dark rounded-2xl p-4 backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 shadow-xl border border-white/30"
+          >
+            <div className="flex flex-col gap-3">
+              {diffResult.stats.total === 0 ? (
+                <div className="flex flex-col items-center gap-2 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-lg">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <span className="text-xs text-green-700 dark:text-green-400 font-semibold">Identical</span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-col items-center gap-1 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 px-3 py-2 rounded-lg border border-green-200 dark:border-green-800">
+                    <Plus className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-semibold text-green-700 dark:text-green-400">{diffResult.stats.additions}</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800">
+                    <Minus className="w-4 h-4 text-red-600" />
+                    <span className="text-sm font-semibold text-red-700 dark:text-red-400">{diffResult.stats.deletions}</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <AlertCircle className="w-4 h-4 text-amber-600" />
+                    <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">{diffResult.stats.modifications}</span>
+                  </div>
+                </>
+              )}
+              
+              {diffCount > 0 && (
+                <>
+                  <div className="h-px bg-gray-300 dark:bg-gray-600" />
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center">
+                      {currentDiffIndex + 1} / {diffCount}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => navigateToDiff('prev')}
+                        className="p-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-md transition-all"
+                      >
+                        <ChevronUp size={16} className="text-gray-700 dark:text-gray-300" />
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => navigateToDiff('next')}
+                        className="p-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-md transition-all"
+                      >
+                        <ChevronDown size={16} className="text-gray-700 dark:text-gray-300" />
+                      </motion.button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Diff Results */}
+      <AnimatePresence>
+        {showDiff && diffResult && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="flex-1 px-6 pb-6"
+          >
+            <div className="max-w-7xl mx-auto h-full flex flex-col">
+              {/* Stats Bar - Normal Position */}
+              <div ref={statsBarRef} className="glass-morphism dark:glass-morphism-dark rounded-2xl p-4 mb-4">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-4">
+                    {diffResult.stats.total === 0 ? (
+                      <div className="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 px-4 py-2 rounded-lg">
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                        <span className="text-green-700 dark:text-green-400 font-semibold">Files are identical</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 px-4 py-2 rounded-lg border border-green-200 dark:border-green-800">
+                          <Plus className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-semibold text-green-700 dark:text-green-400">{diffResult.stats.additions}</span>
+                          <span className="text-xs text-green-600 dark:text-green-500">additions</span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 px-4 py-2 rounded-lg border border-red-200 dark:border-red-800">
+                          <Minus className="w-4 h-4 text-red-600" />
+                          <span className="text-sm font-semibold text-red-700 dark:text-red-400">{diffResult.stats.deletions}</span>
+                          <span className="text-xs text-red-600 dark:text-red-500">deletions</span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 px-4 py-2 rounded-lg border border-amber-200 dark:border-amber-800">
+                          <AlertCircle className="w-4 h-4 text-amber-600" />
+                          <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">{diffResult.stats.modifications}</span>
+                          <span className="text-xs text-amber-600 dark:text-amber-500">modified</span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 px-4 py-2 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <FileCode2 className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm font-semibold text-blue-700 dark:text-blue-400">{diffResult.stats.total}</span>
+                          <span className="text-xs text-blue-600 dark:text-blue-500">changes</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  
+                  {diffCount > 0 && (
+                    <div className="flex items-center gap-3">
+                      <div className="bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Change {currentDiffIndex + 1} / {diffCount}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => navigateToDiff('prev')}
+                          className="p-2 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-md transition-all"
+                        >
+                          <ChevronUp size={18} className="text-gray-700 dark:text-gray-300" />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => navigateToDiff('next')}
+                          className="p-2 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-md transition-all"
+                        >
+                          <ChevronDown size={18} className="text-gray-700 dark:text-gray-300" />
+                        </motion.button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Diff Display */}
+              <LineDiffDisplay
+                text1={formattedText1}
+                text2={formattedText2}
+                diffMode={diffOptions.mode}
+                ignoreCase={diffOptions.ignoreCase}
+                ignoreWhitespace={diffOptions.ignoreWhitespace}
+                format={format}
+                diffRefs={diffRefs}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Scroll Indicator */}
+      <ScrollIndicator 
+        diffRefs={diffRefs.current} 
+        totalHeight={documentHeight}
+        isVisible={showDiff && diffResult !== null && diffResult.stats.total > 0}
+      />
+    </div>
+  );
+}
