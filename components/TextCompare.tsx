@@ -60,7 +60,7 @@ export default function TextCompare() {
   const [showDiff, setShowDiff] = useState(false);
   const [copied1, setCopied1] = useState(false);
   const [copied2, setCopied2] = useState(false);
-  const [currentDiffIndex, setCurrentDiffIndex] = useState(0);
+  const [currentDiffIndex, setCurrentDiffIndex] = useState(-1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [documentHeight, setDocumentHeight] = useState(0);
@@ -84,7 +84,7 @@ export default function TextCompare() {
 
   const handleCompare = useCallback(() => {
     setShowDiff(true);
-    setCurrentDiffIndex(0);
+    setCurrentDiffIndex(-1);
     diffRefs.current.clear();
   }, []);
 
@@ -107,9 +107,19 @@ export default function TextCompare() {
 
     let targetDiffIndex;
     if (direction === 'next') {
-      targetDiffIndex = (currentDiffIndex + 1) % diffCount;
+      // 如果当前是 -1（未开始），则跳到第一个（0）
+      if (currentDiffIndex === -1) {
+        targetDiffIndex = 0;
+      } else {
+        targetDiffIndex = (currentDiffIndex + 1) % diffCount;
+      }
     } else {
-      targetDiffIndex = (currentDiffIndex - 1 + diffCount) % diffCount;
+      // 如果当前是 -1（未开始），则跳到最后一个
+      if (currentDiffIndex === -1) {
+        targetDiffIndex = diffCount - 1;
+      } else {
+        targetDiffIndex = (currentDiffIndex - 1 + diffCount) % diffCount;
+      }
     }
 
     // 2. 立即更新 currentDiffIndex
@@ -131,6 +141,7 @@ export default function TextCompare() {
     }, 700);
 
   }, [currentDiffIndex, diffCount, diffResult]);
+
 
   // Monitor scroll position and document height
   useEffect(() => {
@@ -165,7 +176,19 @@ export default function TextCompare() {
           }
         });
         
-        if (closestIndex !== currentDiffIndex && closestIndex >= 0 && closestIndex < diffCount) {
+        // 只有在用户已经开始导航或滚动后才更新索引
+        // 如果当前是 -1 且最接近的是第 0 个，只有当它真正进入视口中心区域才更新
+        if (currentDiffIndex === -1) {
+          const firstElement = diffElements[0];
+          if (firstElement) {
+            const rect = firstElement.getBoundingClientRect();
+            const viewportCenter = window.innerHeight / 2;
+            // 只有当第一个差异真正接近视口中心时才更新到 0
+            if (Math.abs(rect.top - viewportCenter) < 100) {
+              setCurrentDiffIndex(0);
+            }
+          }
+        } else if (closestIndex !== currentDiffIndex && closestIndex >= 0 && closestIndex < diffCount) {
           setCurrentDiffIndex(closestIndex);
         }
       }
