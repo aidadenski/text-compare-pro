@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 interface DiffPosition {
@@ -15,8 +15,8 @@ interface ScrollIndicatorProps {
 }
 
 export default function ScrollIndicator({ diffRefs, totalHeight, isVisible }: ScrollIndicatorProps) {
-  const [scrollPercentage, setScrollPercentage] = useState(0);
-  const [viewportHeight, setViewportHeight] = useState(0);
+  // const [scrollPercentage, setScrollPercentage] = useState(0);
+  // const [viewportHeight, setViewportHeight] = useState(0);
 
   const diffPositions = useMemo(() => {
     const positions: DiffPosition[] = [];
@@ -41,25 +41,25 @@ export default function ScrollIndicator({ diffRefs, totalHeight, isVisible }: Sc
     return positions;
   }, [diffRefs, totalHeight]);
 
-  useEffect(() => {
-    const updateScrollInfo = () => {
-      const scrollTop = window.pageYOffset;
-      const docHeight = document.documentElement.scrollHeight;
-      const winHeight = window.innerHeight;
+  // useEffect(() => {
+  //   const updateScrollInfo = () => {
+  //     const scrollTop = window.pageYOffset;
+  //     const docHeight = document.documentElement.scrollHeight;
+  //     const winHeight = window.innerHeight;
       
-      setScrollPercentage((scrollTop / (docHeight - winHeight)) * 100);
-      setViewportHeight((winHeight / docHeight) * 100);
-    };
+  //     setScrollPercentage((scrollTop / (docHeight - winHeight)) * 100);
+  //     setViewportHeight((winHeight / docHeight) * 100);
+  //   };
 
-    updateScrollInfo();
-    window.addEventListener('scroll', updateScrollInfo);
-    window.addEventListener('resize', updateScrollInfo);
+  //   updateScrollInfo();
+  //   window.addEventListener('scroll', updateScrollInfo);
+  //   window.addEventListener('resize', updateScrollInfo);
 
-    return () => {
-      window.removeEventListener('scroll', updateScrollInfo);
-      window.removeEventListener('resize', updateScrollInfo);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener('scroll', updateScrollInfo);
+  //     window.removeEventListener('resize', updateScrollInfo);
+  //   };
+  // }, []);
 
   if (!isVisible || diffPositions.length === 0) return null;
 

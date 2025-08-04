@@ -149,19 +149,41 @@ a {
   }
   
   .diff-line-added {
-    @apply border-l-4 border-emerald-400 bg-gradient-to-r from-emerald-50/50 to-transparent dark:from-emerald-900/20 dark:to-transparent;
+    @apply border-l-4 border-emerald-400;
+    background: linear-gradient(to right, rgba(16, 185, 129, 0.15), transparent);
   }
   
   .diff-line-removed {
-    @apply border-l-4 border-rose-400 bg-gradient-to-r from-rose-50/50 to-transparent dark:from-rose-900/20 dark:to-transparent;
+    @apply border-l-4 border-rose-400;
+    background: linear-gradient(to right, rgba(244, 63, 94, 0.15), transparent);
   }
   
   .diff-line-added-light {
-    @apply border-l-4 border-emerald-300 bg-gradient-to-r from-emerald-50/20 to-transparent dark:from-emerald-900/10 dark:to-transparent;
+    @apply border-l-4 border-emerald-300;
+    background: linear-gradient(to right, rgba(16, 185, 129, 0.08), transparent);
   }
   
   .diff-line-removed-light {
-    @apply border-l-4 border-rose-300 bg-gradient-to-r from-rose-50/20 to-transparent dark:from-rose-900/10 dark:to-transparent;
+    @apply border-l-4 border-rose-300;
+    background: linear-gradient(to right, rgba(244, 63, 94, 0.08), transparent);
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .dark .diff-line-added {
+      background: linear-gradient(to right, rgba(16, 185, 129, 0.2), transparent);
+    }
+    
+    .dark .diff-line-removed {
+      background: linear-gradient(to right, rgba(244, 63, 94, 0.2), transparent);
+    }
+    
+    .dark .diff-line-added-light {
+      background: linear-gradient(to right, rgba(16, 185, 129, 0.1), transparent);
+    }
+    
+    .dark .diff-line-removed-light {
+      background: linear-gradient(to right, rgba(244, 63, 94, 0.1), transparent);
+    }
   }
   
   .diff-content-added {
@@ -175,6 +197,24 @@ a {
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: var(--muted-foreground) transparent;
+  }
+  
+  /* Custom select dropdown styling */
+  select.bg-transparent {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .dark select.bg-transparent {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23e5e7eb' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    }
   }
   
   .custom-scrollbar::-webkit-scrollbar {

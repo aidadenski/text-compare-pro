@@ -207,7 +207,8 @@ export default function LineDiffDisplay({
                 }}
                 className={`px-3 py-1 flex items-start ${
                   lineInfo.type === 'removed' && (!showInlineDiff || isCompleteDeletion) ? 'diff-line-removed' : 
-                  lineInfo.type === 'removed' && showInlineDiff && !isCompleteDeletion ? 'diff-line-removed-light' : ''
+                  lineInfo.type === 'removed' && showInlineDiff && !isCompleteDeletion ? 'diff-line-removed-light' : 
+                  showInlineDiff && lineInfo.type === 'unchanged' && lineInfo.content !== rightLineInfo?.content ? 'diff-line-removed-light' : ''
                 }`}
               >
                 <span className="text-gray-500 text-xs mr-3 select-none flex-shrink-0 inline-block w-12 text-right">
@@ -267,7 +268,8 @@ export default function LineDiffDisplay({
                 }}
                 className={`px-3 py-1 flex items-start ${
                   lineInfo.type === 'added' && (!showInlineDiff || isCompleteAddition) ? 'diff-line-added' : 
-                  lineInfo.type === 'added' && showInlineDiff && !isCompleteAddition ? 'diff-line-added-light' : ''
+                  lineInfo.type === 'added' && showInlineDiff && !isCompleteAddition ? 'diff-line-added-light' : 
+                  showInlineDiff && lineInfo.type === 'unchanged' && lineInfo.content !== leftLineInfo?.content ? 'diff-line-added-light' : ''
                 }`}
               >
                 <span className="text-gray-500 text-xs mr-3 select-none flex-shrink-0 inline-block w-12 text-right">

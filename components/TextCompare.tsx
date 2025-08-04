@@ -21,7 +21,8 @@ import {
   Plus,
   Minus,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  GitCompare
 } from 'lucide-react';
 import { computeDiff, formatText, DiffOptions, DiffMode } from '@/utils/diff';
 import LineDiffDisplay from './LineDiffDisplay';
@@ -42,12 +43,14 @@ const formatOptions = [
 
 const diffModes: { value: DiffMode; label: string }[] = [
   { value: 'lines', label: 'Lines' },
-  { value: 'words', label: 'Words' },
   { value: 'chars', label: 'Characters' },
-  { value: 'sentences', label: 'Sentences' },
 ];
 
-export default function TextCompare() {
+interface TextCompareProps {
+  onDiffToggle?: (showDiff: boolean) => void;
+}
+
+export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
   const [text1, setText1] = useState('');
   const [text2, setText2] = useState('');
   const [diffOptions, setDiffOptions] = useState<DiffOptions>({
@@ -86,7 +89,8 @@ export default function TextCompare() {
     setShowDiff(true);
     setCurrentDiffIndex(-1);
     diffRefs.current.clear();
-  }, []);
+    onDiffToggle?.(true);
+  }, [onDiffToggle]);
 
   const handleCopy = useCallback(async (text: string, side: 1 | 2) => {
     await navigator.clipboard.writeText(text);
@@ -142,6 +146,11 @@ export default function TextCompare() {
 
   }, [currentDiffIndex, diffCount, diffResult]);
 
+
+  // Notify parent when showDiff changes
+  useEffect(() => {
+    onDiffToggle?.(showDiff);
+  }, [showDiff, onDiffToggle]);
 
   // Monitor scroll position and document height
   useEffect(() => {
@@ -223,11 +232,11 @@ export default function TextCompare() {
   return (
     <div className={`${isFullscreen ? 'fixed inset-0 z-40 bg-background' : ''} flex flex-col h-full`}>
       {/* Header */}
-      <header className="px-6 py-8 text-center">
+      <header className="px-6 py-4 text-center">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4"
+          className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2"
         >
           Text Compare Pro
         </motion.h1>
@@ -242,7 +251,7 @@ export default function TextCompare() {
       </header>
 
       {/* Input Section */}
-      <div className="px-6 mb-6">
+      <div className="px-6 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-7xl mx-auto">
           {/* Left Input */}
           <motion.div
@@ -306,20 +315,21 @@ export default function TextCompare() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="max-w-7xl mx-auto mt-6"
+          className="max-w-7xl mx-auto mt-4"
         >
           <div className="glass-morphism dark:glass-morphism-dark border-indigo rounded-2xl p-6">
             <div className="flex flex-wrap items-center gap-4">
               {/* Format Selector */}
-              <div className="flex items-center gap-2">
-                <Settings size={18} className="text-gray-500" />
+              <div className="flex items-center gap-2 bg-white/30 dark:bg-gray-800/30 rounded-lg px-3 py-1.5 border border-blue-200/50 dark:border-purple-700/50">
+                <Settings size={16} className="text-blue-600 dark:text-purple-400" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Format:</span>
                 <select
                   value={format}
                   onChange={(e) => setFormat(e.target.value)}
-                  className="bg-white/50 dark:bg-gray-800/50 border border-blue-200 dark:border-purple-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                  className="bg-transparent border-0 outline-none focus:ring-0 text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer min-w-[120px]"
                 >
                   {formatOptions.map(option => (
-                    <option key={option.value} value={option.value}>
+                    <option key={option.value} value={option.value} className="bg-white dark:bg-gray-800">
                       {option.label}
                     </option>
                   ))}
@@ -327,15 +337,16 @@ export default function TextCompare() {
               </div>
 
               {/* Diff Mode */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Mode:</span>
+              <div className="flex items-center gap-2 bg-white/30 dark:bg-gray-800/30 rounded-lg px-3 py-1.5 border border-purple-200/50 dark:border-blue-700/50">
+                <GitCompare size={16} className="text-purple-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Mode:</span>
                 <select
                   value={diffOptions.mode}
                   onChange={(e) => setDiffOptions({ ...diffOptions, mode: e.target.value as DiffMode })}
-                  className="bg-white/50 dark:bg-gray-800/50 border border-blue-200 dark:border-purple-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                  className="bg-transparent border-0 outline-none focus:ring-0 text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer min-w-[100px]"
                 >
                   {diffModes.map(mode => (
-                    <option key={mode.value} value={mode.value}>
+                    <option key={mode.value} value={mode.value} className="bg-white dark:bg-gray-800">
                       {mode.label}
                     </option>
                   ))}
@@ -343,24 +354,24 @@ export default function TextCompare() {
               </div>
 
               {/* Options */}
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer bg-white/30 dark:bg-gray-800/30 rounded-lg px-3 py-1.5 border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/40 dark:hover:bg-gray-800/40 transition-colors">
                 <input
                   type="checkbox"
                   checked={diffOptions.ignoreCase}
                   onChange={(e) => setDiffOptions({ ...diffOptions, ignoreCase: e.target.checked })}
-                  className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 w-4 h-4"
                 />
-                <span className="text-sm text-gray-600 dark:text-gray-300">Ignore Case</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Ignore Case</span>
               </label>
 
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer bg-white/30 dark:bg-gray-800/30 rounded-lg px-3 py-1.5 border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/40 dark:hover:bg-gray-800/40 transition-colors">
                 <input
                   type="checkbox"
                   checked={diffOptions.ignoreWhitespace}
                   onChange={(e) => setDiffOptions({ ...diffOptions, ignoreWhitespace: e.target.checked })}
-                  className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 w-4 h-4"
                 />
-                <span className="text-sm text-gray-600 dark:text-gray-300">Ignore Whitespace</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Ignore Whitespace</span>
               </label>
 
               {/* Compare Button */}
@@ -381,6 +392,7 @@ export default function TextCompare() {
                   setText1('');
                   setText2('');
                   setShowDiff(false);
+                  onDiffToggle?.(false);
                 }}
                 className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
