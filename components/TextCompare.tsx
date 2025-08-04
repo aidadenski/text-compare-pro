@@ -80,6 +80,36 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
     return computeDiff(formattedText1, formattedText2, diffOptions);
   }, [formattedText1, formattedText2, diffOptions, showDiff]);
 
+  // 保存上一次的选项值，用于检测变化
+  const prevOptionsRef = useRef({ diffOptions, format });
+  
+  // 当 diffOptions 或 format 改变时，重新执行比较
+  useEffect(() => {
+    // 检查是否真的有变化
+    const optionsChanged = 
+      prevOptionsRef.current.diffOptions !== diffOptions || 
+      prevOptionsRef.current.format !== format;
+    
+    if (showDiff && optionsChanged && (text1 || text2)) {
+      // 更新 ref
+      prevOptionsRef.current = { diffOptions, format };
+      
+      // 执行重置逻辑
+      setShowDiff(false);
+      setCurrentDiffIndex(-1);
+      diffRefs.current.clear();
+      
+      // 使用 setTimeout 确保状态更新完成后再重新比较
+      setTimeout(() => {
+        // 重新执行比较
+        setShowDiff(true);
+        setCurrentDiffIndex(-1);
+        diffRefs.current.clear();
+        onDiffToggle?.(true);
+      }, 50);
+    }
+  }, [diffOptions, format, showDiff, text1, text2, onDiffToggle]);
+
   const diffCount = useMemo(() => {
     if (!diffResult) return 0;
     return diffResult.stats.total;
@@ -197,8 +227,23 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
               setCurrentDiffIndex(0);
             }
           }
-        } else if (closestIndex !== currentDiffIndex && closestIndex >= 0 && closestIndex < diffCount) {
-          setCurrentDiffIndex(closestIndex);
+        } else if (currentDiffIndex !== -1) {
+          // 检查是否应该重置为 -1（用户滚动到顶部）
+          const firstElement = diffElements[0];
+          if (firstElement) {
+            const rect = firstElement.getBoundingClientRect();
+            const viewportCenter = window.innerHeight / 2;
+            // 如果第一个差异在视口中心下方很远，说明用户在顶部
+            if (rect.top > viewportCenter + 100) {
+              setCurrentDiffIndex(-1);
+              return;
+            }
+          }
+          
+          // 否则更新为最接近的索引
+          if (closestIndex !== currentDiffIndex && closestIndex >= 0 && closestIndex < diffCount) {
+            setCurrentDiffIndex(closestIndex);
+          }
         }
       }
     };
@@ -450,7 +495,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
                   <div className="h-px bg-gray-300 dark:bg-gray-600" />
                   <div className="flex flex-col items-center gap-2">
                     <div className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center">
-                      {currentDiffIndex + 1} / {diffCount}
+                      {currentDiffIndex === -1 ? 0 : currentDiffIndex + 1} / {diffCount}
                     </div>
                     <div className="flex flex-col gap-1">
                       <motion.button
@@ -527,7 +572,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
                     <div className="flex items-center gap-3">
                       <div className="bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Change {currentDiffIndex + 1} / {diffCount}
+                          Change 0 / {diffCount}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
@@ -562,6 +607,10 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
                 ignoreWhitespace={diffOptions.ignoreWhitespace}
                 format={format}
                 diffRefs={diffRefs}
+                onDiffCountChange={(count) => {
+                  // 这个回调会在 LineDiffDisplay 重新计算 diff 后被调用
+                  // 确保 diffRefs 被正确填充
+                }}
               />
             </div>
           </motion.div>
