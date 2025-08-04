@@ -617,7 +617,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
                 ignoreWhitespace={diffOptions.ignoreWhitespace}
                 format={format}
                 diffRefs={diffRefs}
-                onDiffCountChange={(count) => {
+                onDiffCountChange={() => {
                   // 这个回调会在 LineDiffDisplay 重新计算 diff 后被调用
                   // 确保 diffRefs 被正确填充
                 }}
