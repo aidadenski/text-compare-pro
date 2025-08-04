@@ -22,7 +22,8 @@ import {
   Minus,
   AlertCircle,
   CheckCircle2,
-  GitCompare
+  GitCompare,
+  ArrowUp
 } from 'lucide-react';
 import { computeDiff, formatText, DiffOptions, DiffMode } from '@/utils/diff';
 import LineDiffDisplay from './LineDiffDisplay';
@@ -67,6 +68,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [documentHeight, setDocumentHeight] = useState(0);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
   
   const diffRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const statsBarRef = useRef<HTMLDivElement>(null);
@@ -133,6 +135,10 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
     }
   }, []);
 
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   const navigateToDiff = useCallback((direction: 'prev' | 'next') => {
     if (!diffResult || diffCount === 0) return;
 
@@ -194,6 +200,10 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
         const rect = statsBarRef.current.getBoundingClientRect();
         setIsScrolled(rect.bottom < 0);
       }
+      
+      // 检查是否需要显示返回顶部按钮
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      setShowScrollToTop(scrollTop > 200);
       
       // Update current diff index based on scroll position
       if (diffRefs.current.size > 0 && diffCount > 0) {
@@ -623,6 +633,24 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
         totalHeight={documentHeight}
         isVisible={showDiff && diffResult !== null && diffResult.stats.total > 0}
       />
+      
+      {/* Scroll to Top Button */}
+      <AnimatePresence>
+        {showScrollToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 p-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 z-40"
+            whileHover={{ rotate: -10 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <ArrowUp size={20} />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
