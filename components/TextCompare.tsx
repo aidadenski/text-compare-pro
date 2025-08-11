@@ -44,6 +44,8 @@ const formatOptions = [
 
 const diffModes: { value: DiffMode; label: string }[] = [
   { value: 'lines', label: 'Lines' },
+  { value: 'words', label: 'Words' },
+  { value: 'sentences', label: 'Sentences' },
   { value: 'chars', label: 'Characters' },
 ];
 
