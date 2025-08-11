@@ -38,19 +38,35 @@ export function computeDiff(
     processedText2 = processedText2.replace(/\s+/g, ' ').trim();
   }
 
+  // Compute detailed changes based on selected mode
+  let changes: Diff.Change[];
+  switch (options.mode) {
+    case 'chars':
+      changes = Diff.diffChars(processedText1, processedText2);
+      break;
+    case 'words':
+      changes = Diff.diffWords(processedText1, processedText2);
+      break;
+    case 'sentences':
+      changes = Diff.diffSentences(processedText1, processedText2);
+      break;
+    default:
+      changes = Diff.diffLines(processedText1, processedText2);
+  }
+
   // Always use line diff for statistics
-  const changes = Diff.diffLines(processedText1, processedText2);
+  const lineChanges = Diff.diffLines(processedText1, processedText2);
 
   let addedLines = 0;
   let removedLines = 0;
   let identicalLines = 0;
   let modifiedLines = 0;
 
-  changes.forEach((change) => {
-    const lines = change.value.split('\n').filter((line, index, arr) => 
+  lineChanges.forEach((change) => {
+    const lines = change.value.split('\n').filter((line, index, arr) =>
       index < arr.length - 1 || line !== ''
     );
-    
+
     if (change.added) {
       addedLines += lines.length;
     } else if (change.removed) {
@@ -63,7 +79,7 @@ export function computeDiff(
   // Count modifications as the minimum of added and removed lines
   // This represents lines that were changed (not purely added or removed)
   modifiedLines = Math.min(addedLines, removedLines);
-  
+
   // Total represents unique diff locations
   const total = addedLines + removedLines - modifiedLines;
 
