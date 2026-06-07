@@ -57,17 +57,22 @@ export default function DiffLine({
       break;
   }
 
-  // If showing left side, show removed and unchanged parts
+  // Keep placeholders for the opposite side's inline-only edits. Because the
+  // compare view uses a monospace font, invisible placeholders preserve the
+  // horizontal column positions after an insertion/deletion and prevent the two
+  // panes from looking offset on the same line.
   if (side === 'left') {
     return (
       <>
         {changes.map((change, index) => {
-          if (change.added) return null;
+          const className = change.added
+            ? 'invisible whitespace-pre'
+            : change.removed
+              ? 'diff-content-removed whitespace-pre'
+              : 'whitespace-pre';
+
           return (
-            <span
-              key={index}
-              className={change.removed ? 'diff-content-removed whitespace-pre' : 'whitespace-pre'}
-            >
+            <span key={index} className={className}>
               {change.value}
             </span>
           );
@@ -76,16 +81,17 @@ export default function DiffLine({
     );
   }
 
-  // If showing right side, show added and unchanged parts
   return (
     <>
       {changes.map((change, index) => {
-        if (change.removed) return null;
+        const className = change.removed
+          ? 'invisible whitespace-pre'
+          : change.added
+            ? 'diff-content-added whitespace-pre'
+            : 'whitespace-pre';
+
         return (
-          <span
-            key={index}
-            className={change.added ? 'diff-content-added whitespace-pre' : 'whitespace-pre'}
-          >
+          <span key={index} className={className}>
             {change.value}
           </span>
         );

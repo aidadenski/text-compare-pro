@@ -68,6 +68,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
   const [copied2, setCopied2] = useState(false);
   const [currentDiffIndex, setCurrentDiffIndex] = useState(-1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const contentWidthClass = isFullscreen ? 'w-full max-w-none' : 'max-w-7xl';
   const [isScrolled, setIsScrolled] = useState(false);
   const [documentHeight, setDocumentHeight] = useState(0);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
@@ -287,7 +288,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
 
 
   return (
-    <div className={`${isFullscreen ? 'fixed inset-0 z-40 bg-background' : ''} flex flex-col h-full`}>
+    <div className={`${isFullscreen ? 'fixed inset-0 z-40 bg-background overflow-y-auto custom-scrollbar' : ''} flex flex-col h-full`}>
       {/* Header */}
       <header className="px-6 py-4 text-center">
         <motion.h1 
@@ -309,7 +310,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
 
       {/* Input Section */}
       <div className="px-6 mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-7xl mx-auto">
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${contentWidthClass} mx-auto`}>
           {/* Left Input */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -372,7 +373,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="max-w-7xl mx-auto mt-4"
+          className={`${contentWidthClass} mx-auto mt-4`}
         >
           <div className="glass-morphism dark:glass-morphism-dark border-indigo rounded-2xl p-6">
             <div className="flex flex-wrap items-center gap-4">
@@ -544,7 +545,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
             exit={{ opacity: 0, y: 20 }}
             className="flex-1 px-6 pb-6"
           >
-            <div className="max-w-7xl mx-auto h-full flex flex-col">
+            <div className={`${contentWidthClass} mx-auto h-full flex flex-col`}>
               {/* Stats Bar - Normal Position */}
               <div ref={statsBarRef} className="glass-morphism dark:glass-morphism-dark border-emerald rounded-2xl p-4 mb-4">
                 <div className="flex items-center justify-between flex-wrap gap-4">
