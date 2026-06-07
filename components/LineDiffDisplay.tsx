@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useRef, useEffect, useMemo } from 'react';
-import * as Diff from 'diff';
 import DiffLine from './DiffLine';
+import { computeAlignedLineDiff } from '@/utils/diff';
 
 interface LineDiffDisplayProps {
   text1: string;
@@ -15,12 +15,6 @@ interface LineDiffDisplayProps {
   onDiffCountChange?: (count: number) => void;
 }
 
-interface LineInfo {
-  content: string;
-  type: 'added' | 'removed' | 'unchanged' | 'empty';
-  originalLineNumber?: number;
-}
-
 export default function LineDiffDisplay({
   text1,
   text2,
@@ -31,121 +25,12 @@ export default function LineDiffDisplay({
   onDiffCountChange
 }: LineDiffDisplayProps) {
   
-  // Use Diff.diffLines to get proper line-level diff
+  // Use the diff library's native line comparison options so the diff tokens
+  // keep their original line boundaries. Collapsing whitespace before line
+  // diffing can turn multi-line text into one token and desynchronize the
+  // displayed line numbers.
   const { leftLines, rightLines } = useMemo(() => {
-    const left: LineInfo[] = [];
-    const right: LineInfo[] = [];
-    
-    // Split texts into lines for processing
-    const originalLines1 = text1.split('\n');
-    const originalLines2 = text2.split('\n');
-    
-    // Apply preprocessing if needed
-    let processedText1 = text1;
-    let processedText2 = text2;
-    
-    if (ignoreCase) {
-      processedText1 = processedText1.toLowerCase();
-      processedText2 = processedText2.toLowerCase();
-    }
-    
-    if (ignoreWhitespace) {
-      processedText1 = processedText1.replace(/\s+/g, ' ').trim();
-      processedText2 = processedText2.replace(/\s+/g, ' ').trim();
-    }
-    
-    // Get line diff
-    const changes = Diff.diffLines(processedText1, processedText2);
-    let leftLineNumber = 1;
-    let rightLineNumber = 1;
-    let changeIndex = 0;
-    
-    // Process changes and try to pair removed/added lines
-    while (changeIndex < changes.length) {
-      const change = changes[changeIndex];
-      const lines = change.value.split('\n').filter((line, index, arr) => 
-        index < arr.length - 1 || line !== ''
-      );
-      
-      if (change.removed) {
-        // Check if next change is added (potential modification)
-        const nextChange = changes[changeIndex + 1];
-        if (nextChange && nextChange.added) {
-          const addedLines = nextChange.value.split('\n').filter((line, index, arr) => 
-            index < arr.length - 1 || line !== ''
-          );
-          
-          // Pair up removed and added lines
-          const maxLines = Math.max(lines.length, addedLines.length);
-          for (let i = 0; i < maxLines; i++) {
-            if (i < lines.length) {
-              left.push({ 
-                content: originalLines1[leftLineNumber - 1] || '', 
-                type: 'removed',
-                originalLineNumber: leftLineNumber++
-              });
-            } else {
-              left.push({ content: '', type: 'empty' });
-            }
-            
-            if (i < addedLines.length) {
-              right.push({ 
-                content: originalLines2[rightLineNumber - 1] || '', 
-                type: 'added',
-                originalLineNumber: rightLineNumber++
-              });
-            } else {
-              right.push({ content: '', type: 'empty' });
-            }
-          }
-          
-          // Skip the next change since we've processed it
-          changeIndex += 2;
-          continue;
-        } else {
-          // Lines only in left side
-          lines.forEach(() => {
-            left.push({ 
-              content: originalLines1[leftLineNumber - 1] || '', 
-              type: 'removed',
-              originalLineNumber: leftLineNumber++
-            });
-            right.push({ content: '', type: 'empty' });
-          });
-        }
-      } else if (change.added) {
-        // Lines only in right side (not paired with removed)
-        lines.forEach(() => {
-          left.push({ content: '', type: 'empty' });
-          right.push({ 
-            content: originalLines2[rightLineNumber - 1] || '', 
-            type: 'added',
-            originalLineNumber: rightLineNumber++
-          });
-        });
-      } else {
-        // Unchanged lines
-        lines.forEach(() => {
-          const originalLeftLine = originalLines1[leftLineNumber - 1] || '';
-          const originalRightLine = originalLines2[rightLineNumber - 1] || '';
-          
-          left.push({ 
-            content: originalLeftLine, 
-            type: 'unchanged',
-            originalLineNumber: leftLineNumber++
-          });
-          right.push({ 
-            content: originalRightLine, 
-            type: 'unchanged',
-            originalLineNumber: rightLineNumber++
-          });
-        });
-      }
-      
-      changeIndex++;
-    }
-    
-    return { leftLines: left, rightLines: right };
+    return computeAlignedLineDiff(text1, text2, { ignoreCase, ignoreWhitespace });
   }, [text1, text2, ignoreCase, ignoreWhitespace]);
   
   const leftRefs = useRef<(HTMLDivElement | null)[]>([]);
