@@ -20,52 +20,152 @@ export interface DiffResult {
   };
 }
 
+export interface DiffLineInfo {
+  content: string;
+  type: 'added' | 'removed' | 'unchanged' | 'empty';
+  originalLineNumber?: number;
+}
+
+function splitComparableLines(value: string): string[] {
+  return value.split('\n').filter((line, index, arr) =>
+    index < arr.length - 1 || line !== ''
+  );
+}
+
+function getDiffOptions(options: Pick<DiffOptions, 'ignoreCase' | 'ignoreWhitespace'>) {
+  return {
+    ignoreCase: options.ignoreCase,
+    ignoreWhitespace: options.ignoreWhitespace,
+  };
+}
+
+export function computeLineChanges(
+  text1: string,
+  text2: string,
+  options: Pick<DiffOptions, 'ignoreCase' | 'ignoreWhitespace'>
+): Diff.Change[] {
+  return Diff.diffLines(text1, text2, getDiffOptions(options));
+}
+
+export function computeAlignedLineDiff(
+  text1: string,
+  text2: string,
+  options: Pick<DiffOptions, 'ignoreCase' | 'ignoreWhitespace'>
+): { leftLines: DiffLineInfo[]; rightLines: DiffLineInfo[] } {
+  const left: DiffLineInfo[] = [];
+  const right: DiffLineInfo[] = [];
+  const originalLines1 = text1.split('\n');
+  const originalLines2 = text2.split('\n');
+  const changes = computeLineChanges(text1, text2, options);
+
+  let leftLineNumber = 1;
+  let rightLineNumber = 1;
+  let changeIndex = 0;
+
+  while (changeIndex < changes.length) {
+    const change = changes[changeIndex];
+    const lines = splitComparableLines(change.value);
+
+    if (change.removed) {
+      const nextChange = changes[changeIndex + 1];
+      if (nextChange?.added) {
+        const addedLines = splitComparableLines(nextChange.value);
+        const maxLines = Math.max(lines.length, addedLines.length);
+
+        for (let i = 0; i < maxLines; i++) {
+          if (i < lines.length) {
+            left.push({
+              content: originalLines1[leftLineNumber - 1] ?? '',
+              type: 'removed',
+              originalLineNumber: leftLineNumber++,
+            });
+          } else {
+            left.push({ content: '', type: 'empty' });
+          }
+
+          if (i < addedLines.length) {
+            right.push({
+              content: originalLines2[rightLineNumber - 1] ?? '',
+              type: 'added',
+              originalLineNumber: rightLineNumber++,
+            });
+          } else {
+            right.push({ content: '', type: 'empty' });
+          }
+        }
+
+        changeIndex += 2;
+        continue;
+      }
+
+      lines.forEach(() => {
+        left.push({
+          content: originalLines1[leftLineNumber - 1] ?? '',
+          type: 'removed',
+          originalLineNumber: leftLineNumber++,
+        });
+        right.push({ content: '', type: 'empty' });
+      });
+    } else if (change.added) {
+      lines.forEach(() => {
+        left.push({ content: '', type: 'empty' });
+        right.push({
+          content: originalLines2[rightLineNumber - 1] ?? '',
+          type: 'added',
+          originalLineNumber: rightLineNumber++,
+        });
+      });
+    } else {
+      lines.forEach(() => {
+        left.push({
+          content: originalLines1[leftLineNumber - 1] ?? '',
+          type: 'unchanged',
+          originalLineNumber: leftLineNumber++,
+        });
+        right.push({
+          content: originalLines2[rightLineNumber - 1] ?? '',
+          type: 'unchanged',
+          originalLineNumber: rightLineNumber++,
+        });
+      });
+    }
+
+    changeIndex++;
+  }
+
+  return { leftLines: left, rightLines: right };
+}
+
 export function computeDiff(
   text1: string,
   text2: string,
   options: DiffOptions
 ): DiffResult {
-  let processedText1 = text1;
-  let processedText2 = text2;
+  const diffOptions = getDiffOptions(options);
 
-  if (options.ignoreCase) {
-    processedText1 = processedText1.toLowerCase();
-    processedText2 = processedText2.toLowerCase();
-  }
-
-  if (options.ignoreWhitespace) {
-    processedText1 = processedText1.replace(/\s+/g, ' ').trim();
-    processedText2 = processedText2.replace(/\s+/g, ' ').trim();
-  }
-
-  // Compute detailed changes based on selected mode
   let changes: Diff.Change[];
   switch (options.mode) {
     case 'chars':
-      changes = Diff.diffChars(processedText1, processedText2);
+      changes = Diff.diffChars(text1, text2, { ignoreCase: options.ignoreCase });
       break;
     case 'words':
-      changes = Diff.diffWords(processedText1, processedText2);
+      changes = Diff.diffWords(text1, text2, diffOptions);
       break;
     case 'sentences':
-      changes = Diff.diffSentences(processedText1, processedText2);
+      changes = Diff.diffSentences(text1, text2, { ignoreCase: options.ignoreCase });
       break;
     default:
-      changes = Diff.diffLines(processedText1, processedText2);
+      changes = computeLineChanges(text1, text2, options);
   }
 
-  // Always use line diff for statistics
-  const lineChanges = Diff.diffLines(processedText1, processedText2);
+  const lineChanges = computeLineChanges(text1, text2, options);
 
   let addedLines = 0;
   let removedLines = 0;
   let identicalLines = 0;
-  let modifiedLines = 0;
 
   lineChanges.forEach((change) => {
-    const lines = change.value.split('\n').filter((line, index, arr) =>
-      index < arr.length - 1 || line !== ''
-    );
+    const lines = splitComparableLines(change.value);
 
     if (change.added) {
       addedLines += lines.length;
@@ -76,18 +176,14 @@ export function computeDiff(
     }
   });
 
-  // Count modifications as the minimum of added and removed lines
-  // This represents lines that were changed (not purely added or removed)
-  modifiedLines = Math.min(addedLines, removedLines);
-
-  // Total represents unique diff locations
+  const modifiedLines = Math.min(addedLines, removedLines);
   const total = addedLines + removedLines - modifiedLines;
 
   const stats = {
     additions: addedLines,
     deletions: removedLines,
     modifications: modifiedLines,
-    total: total,
+    total,
     identical: identicalLines,
   };
 
