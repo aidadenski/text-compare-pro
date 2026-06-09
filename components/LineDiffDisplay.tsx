@@ -24,7 +24,7 @@ export default function LineDiffDisplay({
   diffRefs,
   onDiffCountChange
 }: LineDiffDisplayProps) {
-  
+
   // Use the diff library's native line comparison options so the diff tokens
   // keep their original line boundaries. Collapsing whitespace before line
   // diffing can turn multi-line text into one token and desynchronize the
@@ -32,159 +32,169 @@ export default function LineDiffDisplay({
   const { leftLines, rightLines } = useMemo(() => {
     return computeAlignedLineDiff(text1, text2, { ignoreCase, ignoreWhitespace });
   }, [text1, text2, ignoreCase, ignoreWhitespace]);
-  
-  const leftRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const rightRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const leftRowRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const leftPaneRef = useRef<HTMLDivElement | null>(null);
+  const rightPaneRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Clear previous refs
+    // Clear previous refs and group consecutive changed lines into blocks
     diffRefs.current.clear();
     let diffGroupIndex = 0;
     let inDiffBlock = false;
 
-    // Group consecutive diff lines into diff blocks
     leftLines.forEach((lineInfo, index) => {
       if (lineInfo.type !== 'unchanged') {
-        if (!inDiffBlock && leftRefs.current[index]) {
-          // Start of a new diff block
-          diffRefs.current.set(diffGroupIndex++, leftRefs.current[index]!);
+        const el = leftRowRefs.current[index];
+        if (!inDiffBlock && el) {
+          diffRefs.current.set(diffGroupIndex++, el);
           inDiffBlock = true;
         }
       } else {
-        // End of diff block
         inDiffBlock = false;
       }
     });
-    
-    // Notify parent component about the actual diff count
-    if (onDiffCountChange) {
-      onDiffCountChange(diffGroupIndex);
-    }
+
+    onDiffCountChange?.(diffGroupIndex);
   }, [leftLines, diffRefs, onDiffCountChange]);
 
-  return (
-    <div className="flex-1 grid grid-cols-1 xl:grid-cols-2 gap-3 min-h-0 overflow-hidden">
-      {/* Left Panel */}
-      <div className="glass-morphism dark:glass-morphism-dark border-rose rounded-2xl p-3 overflow-auto custom-scrollbar min-w-0">
-        <h3 className="font-medium mb-3 text-gray-700 dark:text-gray-200">Original</h3>
-        <div className="font-mono text-sm overflow-x-hidden">
-          {leftLines.map((lineInfo, index) => {
-            const rightLineInfo = rightLines[index];
-            // Show inline diff for non-line modes when:
-            // 1. Both lines exist and are marked as unchanged but content differs (ignoreCase/ignoreWhitespace)
-            // 2. Both lines exist and one is removed/added (for character/word level diff)
-            const showInlineDiff = diffMode !== 'lines' && (
-              (lineInfo.type === 'unchanged' && 
-               rightLineInfo?.type === 'unchanged' &&
-               lineInfo.content !== rightLineInfo.content) ||
-              (lineInfo.type === 'removed' && rightLineInfo?.type === 'added' &&
-               lineInfo.content && rightLineInfo.content)
-            );
-            
-            // Check if this is a complete line deletion (no corresponding line on right)
-            const isCompleteDeletion = lineInfo.type === 'removed' && rightLineInfo?.type === 'empty';
-            
-            return (
-              <div
-                key={index}
-                ref={el => {
-                  leftRefs.current[index] = el;
-                }}
-                className={`px-3 py-1 flex items-start ${
-                  lineInfo.type === 'removed' && (!showInlineDiff || isCompleteDeletion) ? 'diff-line-removed' : 
-                  lineInfo.type === 'removed' && showInlineDiff && !isCompleteDeletion ? 'diff-line-removed-light' : 
-                  showInlineDiff && lineInfo.type === 'unchanged' && lineInfo.content !== rightLineInfo?.content ? 'diff-line-removed-light' : ''
-                }`}
-              >
-                <span className="text-gray-500 text-xs mr-3 select-none flex-shrink-0 inline-block w-12 text-right">
-                  {lineInfo.originalLineNumber || ''}
-                </span>
-                <div className="flex-1 line-content">
-                  {lineInfo.type === 'empty' ? (
-                    <span className="text-gray-400">&nbsp;</span>
-                  ) : showInlineDiff ? (
-                    <DiffLine
-                      leftLine={lineInfo.content}
-                      rightLine={rightLineInfo.content}
-                      mode={diffMode}
-                      side="left"
-                      ignoreCase={ignoreCase}
-                      ignoreWhitespace={ignoreWhitespace}
-                    />
-                  ) : (
-                    <span className={
-                      lineInfo.type === 'removed' && (diffMode === 'lines' || isCompleteDeletion) ? 'diff-content-removed whitespace-pre' : 'whitespace-pre'
-                    }>
-                      {lineInfo.content}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+  // Mirror scrolling between the two panes so rows stay visually aligned
+  // whether the panes scroll vertically (fullscreen) or horizontally (long
+  // lines). Assigning an unchanged scroll position fires no event, so the
+  // ping-pong settles immediately.
+  const syncScroll =
+    (from: 'left' | 'right') => (event: React.UIEvent<HTMLDivElement>) => {
+      const source = event.currentTarget;
+      const target = from === 'left' ? rightPaneRef.current : leftPaneRef.current;
+      if (!target) return;
+      if (target.scrollTop !== source.scrollTop) {
+        target.scrollTop = source.scrollTop;
+      }
+      if (target.scrollLeft !== source.scrollLeft) {
+        target.scrollLeft = source.scrollLeft;
+      }
+    };
 
-      {/* Right Panel */}
-      <div className="glass-morphism dark:glass-morphism-dark border-cyan rounded-2xl p-3 overflow-auto custom-scrollbar min-w-0">
-        <h3 className="font-medium mb-3 text-gray-700 dark:text-gray-200">Modified</h3>
-        <div className="font-mono text-sm overflow-x-hidden">
-          {rightLines.map((lineInfo, index) => {
-            const leftLineInfo = leftLines[index];
-            // Show inline diff for non-line modes when:
-            // 1. Both lines exist and are marked as unchanged but content differs (ignoreCase/ignoreWhitespace)
-            // 2. Both lines exist and one is added/removed (for character/word level diff)
-            const showInlineDiff = diffMode !== 'lines' && (
-              (lineInfo.type === 'unchanged' && 
-               leftLineInfo?.type === 'unchanged' &&
-               lineInfo.content !== leftLineInfo.content) ||
-              (lineInfo.type === 'added' && leftLineInfo?.type === 'removed' &&
-               lineInfo.content && leftLineInfo.content)
-            );
-            
-            // Check if this is a complete line addition (no corresponding line on left)
-            const isCompleteAddition = lineInfo.type === 'added' && leftLineInfo?.type === 'empty';
-            
-            return (
-              <div
-                key={index}
-                ref={el => {
-                  rightRefs.current[index] = el;
-                }}
-                className={`px-3 py-1 flex items-start ${
-                  lineInfo.type === 'added' && (!showInlineDiff || isCompleteAddition) ? 'diff-line-added' : 
-                  lineInfo.type === 'added' && showInlineDiff && !isCompleteAddition ? 'diff-line-added-light' : 
-                  showInlineDiff && lineInfo.type === 'unchanged' && lineInfo.content !== leftLineInfo?.content ? 'diff-line-added-light' : ''
-                }`}
-              >
-                <span className="text-gray-500 text-xs mr-3 select-none flex-shrink-0 inline-block w-12 text-right">
-                  {lineInfo.originalLineNumber || ''}
-                </span>
-                <div className="flex-1 line-content">
-                  {lineInfo.type === 'empty' ? (
-                    <span className="text-gray-400">&nbsp;</span>
-                  ) : showInlineDiff ? (
-                    <DiffLine
-                      leftLine={leftLineInfo.content}
-                      rightLine={lineInfo.content}
-                      mode={diffMode}
-                      side="right"
-                      ignoreCase={ignoreCase}
-                      ignoreWhitespace={ignoreWhitespace}
-                    />
-                  ) : (
-                    <span className={
-                      lineInfo.type === 'added' && (diffMode === 'lines' || isCompleteAddition) ? 'diff-content-added whitespace-pre' : 'whitespace-pre'
-                    }>
-                      {lineInfo.content}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+  // Full literal class names so Tailwind's content scanner keeps the rules
+  // defined in globals.css (template strings would get tree-shaken away).
+  const rowClasses = {
+    removed: { full: 'diff-row-removed', soft: 'diff-row-removed-soft' },
+    added: { full: 'diff-row-added', soft: 'diff-row-added-soft' },
+  } as const;
+
+  const renderRows = (side: 'left' | 'right') => {
+    const lines = side === 'left' ? leftLines : rightLines;
+    const counterpart = side === 'left' ? rightLines : leftLines;
+    const changedType = side === 'left' ? 'removed' : 'added';
+    const counterpartChangedType = side === 'left' ? 'added' : 'removed';
+
+    return lines.map((lineInfo, index) => {
+      const other = counterpart[index];
+      // Show inline (word/char/sentence) diff when:
+      // 1. Both lines are "unchanged" but their raw content differs
+      //    (ignoreCase / ignoreWhitespace comparisons), or
+      // 2. The pair is a modification: removed on the left, added on the
+      //    right, both with content.
+      const showInlineDiff =
+        diffMode !== 'lines' &&
+        !!other &&
+        ((lineInfo.type === 'unchanged' &&
+          other.type === 'unchanged' &&
+          lineInfo.content !== other.content) ||
+          (lineInfo.type === changedType &&
+            other.type === counterpartChangedType &&
+            !!lineInfo.content &&
+            !!other.content));
+
+      let rowClass = '';
+      if (lineInfo.type === 'empty') {
+        rowClass = 'diff-row-filler';
+      } else if (lineInfo.type === changedType) {
+        rowClass = showInlineDiff
+          ? rowClasses[changedType].soft
+          : rowClasses[changedType].full;
+      } else if (showInlineDiff) {
+        rowClass = rowClasses[changedType].soft;
+      }
+
+      const sign =
+        lineInfo.type === 'removed' ? '−' : lineInfo.type === 'added' ? '+' : '';
+
+      return (
+        <div
+          key={index}
+          ref={
+            side === 'left'
+              ? (el) => {
+                  leftRowRefs.current[index] = el;
+                }
+              : undefined
+          }
+          data-diff-type={lineInfo.type}
+          className={`diff-row ${rowClass}`}
+        >
+          <span className="diff-gutter">
+            <span className="diff-num">{lineInfo.originalLineNumber ?? ''}</span>
+            <span className="diff-sign">{sign}</span>
+          </span>
+          <span className="diff-code">
+            {lineInfo.type === 'empty' ? (
+              ''
+            ) : showInlineDiff && other ? (
+              <DiffLine
+                leftLine={side === 'left' ? lineInfo.content : other.content}
+                rightLine={side === 'left' ? other.content : lineInfo.content}
+                mode={diffMode}
+                side={side}
+                ignoreCase={ignoreCase}
+                ignoreWhitespace={ignoreWhitespace}
+              />
+            ) : (
+              lineInfo.content
+            )}
+          </span>
         </div>
-      </div>
+      );
+    });
+  };
+
+  const renderPanel = (side: 'left' | 'right') => {
+    const isLeft = side === 'left';
+    const lines = isLeft ? leftLines : rightLines;
+    const lineCount = lines.filter((line) => line.type !== 'empty').length;
+
+    return (
+      <section className="card flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl">
+        <header className="flex shrink-0 items-center justify-between border-b border-hairline px-4 py-2.5">
+          <div className="flex items-center gap-2.5">
+            <span
+              className={`h-2 w-2 rounded-full ${isLeft ? 'bg-removed' : 'bg-added'}`}
+            />
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
+              {isLeft ? 'Original' : 'Modified'}
+            </h3>
+          </div>
+          <span className="font-mono text-[11px] tabular-nums text-muted">
+            {lineCount} lines
+          </span>
+        </header>
+        <div
+          ref={isLeft ? leftPaneRef : rightPaneRef}
+          onScroll={syncScroll(side)}
+          className="diff-sheet custom-scrollbar min-h-0 flex-1 overflow-auto"
+        >
+          <div className="w-max min-w-full py-1.5 font-mono text-[12.5px] leading-6 text-foreground">
+            {renderRows(side)}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  return (
+    <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 xl:grid-cols-2">
+      {renderPanel('left')}
+      {renderPanel('right')}
     </div>
   );
 }
