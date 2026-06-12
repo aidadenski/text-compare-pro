@@ -43,7 +43,7 @@ export default function ScrollIndicator({
 
   return (
     <div
-      className="pointer-events-none fixed bottom-12 right-2 top-12 z-30 w-[3px] rounded-full"
+      className="pointer-events-none fixed bottom-12 right-2 top-12 z-30 hidden w-[3px] rounded-full sm:block"
       style={{ background: 'var(--hairline)' }}
     >
       {diffPositions.map((pos, index) => (

@@ -104,14 +104,14 @@ export default function Home() {
 
       {/* Features Section */}
       <section
-        className={`border-t border-hairline px-6 py-24 transition-all duration-300 ${
+        className={`border-t border-hairline px-5 py-16 transition-all duration-300 md:px-6 md:py-24 ${
           showDiff ? 'mt-0' : '-mt-32'
         }`}
       >
         <div className="mx-auto max-w-7xl">
           <div className="mb-14 text-center">
             <span className="eyebrow">Why Text Compare Pro</span>
-            <h2 className="mx-auto mt-4 max-w-2xl font-serif text-4xl tracking-tight text-ink md:text-[2.75rem]">
+            <h2 className="mx-auto mt-4 max-w-2xl font-serif text-3xl tracking-tight text-ink sm:text-4xl md:text-[2.75rem]">
               Built for careful reading
             </h2>
             <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-muted">
@@ -138,11 +138,11 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="border-t border-hairline px-6 py-24">
+      <section className="border-t border-hairline px-5 py-16 md:px-6 md:py-24">
         <div className="mx-auto max-w-7xl">
           <div className="mb-14 text-center">
             <span className="eyebrow">How it works</span>
-            <h2 className="mx-auto mt-4 max-w-2xl font-serif text-4xl tracking-tight text-ink md:text-[2.75rem]">
+            <h2 className="mx-auto mt-4 max-w-2xl font-serif text-3xl tracking-tight text-ink sm:text-4xl md:text-[2.75rem]">
               Three steps to clarity
             </h2>
             <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-muted">
@@ -167,11 +167,11 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="border-t border-hairline px-6 py-24">
+      <section className="border-t border-hairline px-5 py-16 md:px-6 md:py-24">
         <div className="mx-auto max-w-4xl">
           <div className="mb-14 text-center">
             <span className="eyebrow">Questions &amp; answers</span>
-            <h2 className="mx-auto mt-4 max-w-2xl font-serif text-4xl tracking-tight text-ink md:text-[2.75rem]">
+            <h2 className="mx-auto mt-4 max-w-2xl font-serif text-3xl tracking-tight text-ink sm:text-4xl md:text-[2.75rem]">
               Frequently asked questions
             </h2>
             <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-muted">
@@ -196,7 +196,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-hairline px-6 py-14">
+      <footer className="border-t border-hairline px-5 py-12 md:px-6 md:py-14">
         <div className="mx-auto max-w-7xl text-center">
           <h3 className="font-serif text-2xl italic text-ink">Text Compare Pro</h3>
           <p className="mt-2 text-sm text-muted">

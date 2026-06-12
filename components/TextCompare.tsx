@@ -255,7 +255,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
         transition={{ delay: isOriginal ? 0.15 : 0.2 }}
         className="min-w-0"
       >
-        <div className="card editor-card flex h-64 flex-col overflow-hidden rounded-2xl">
+        <div className="card editor-card flex h-64 flex-col overflow-hidden rounded-2xl md:h-72">
           <div className="flex shrink-0 items-center justify-between border-b border-hairline px-4 py-2.5">
             <div className="flex items-center gap-2.5">
               <span
@@ -302,7 +302,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
     >
       {/* Header */}
       {!isFullscreen && (
-        <header className="px-6 pb-10 pt-14 text-center md:pt-20">
+        <header className="px-5 pb-8 pt-12 text-center sm:pb-10 sm:pt-14 md:pt-20">
           <motion.div
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -314,7 +314,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="mx-auto mt-5 max-w-3xl font-serif text-5xl font-medium tracking-tight text-ink md:text-[4.25rem] md:leading-[1.05]"
+            className="mx-auto mt-5 max-w-3xl font-serif text-4xl font-medium tracking-tight text-ink sm:text-5xl md:text-[4.25rem] md:leading-[1.05]"
           >
             Text Compare <em className="italic">Pro</em>
           </motion.h1>
@@ -322,7 +322,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg"
+            className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted sm:mt-5 sm:text-base md:text-lg"
           >
             The editorial-grade diff for prose and code. Find every{' '}
             <del className="demo-del">chnage</del>{' '}
@@ -333,20 +333,23 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
       )}
 
       {/* Input Section */}
-      <div className="mb-4 px-6">
-        <div className="relative grid w-full grid-cols-1 gap-5 md:grid-cols-2">
+      <div className="mb-4 px-3 sm:px-4 lg:px-6">
+        <div className="relative grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
           {renderEditor(1)}
 
-          {/* Swap texts */}
-          <div className="absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 md:block">
+          {/* Swap texts — sits between the editors: horizontally on desktop,
+              vertically when they stack on mobile */}
+          <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
             <motion.button
-              whileHover={{ scale: 1.08, rotate: 180 }}
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.92 }}
               onClick={handleSwap}
               title="Swap texts"
               className="card flex h-10 w-10 items-center justify-center rounded-full text-muted transition-colors hover:text-ink"
             >
-              <ArrowLeftRight size={15} />
+              <span className="block rotate-90 transition-transform md:rotate-0">
+                <ArrowLeftRight size={15} />
+              </span>
             </motion.button>
           </div>
 
@@ -360,8 +363,8 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
           transition={{ delay: 0.25 }}
           className="mt-5 w-full"
         >
-          <div className="card rounded-2xl px-4 py-3.5 md:px-5">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="card rounded-2xl px-3 py-3 sm:px-4 md:px-5 md:py-3.5">
+            <div className="flex flex-wrap items-center gap-2.5 md:gap-3">
               {/* Format Selector */}
               <label className="field" title="Source format">
                 <FileCode2 size={14} className="shrink-0 text-muted" />
@@ -412,7 +415,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
                 Ignore whitespace
               </label>
 
-              <div className="ml-auto flex items-center gap-2">
+              <div className="flex w-full items-center gap-2 md:ml-auto md:w-auto">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -437,7 +440,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={handleCompare}
-                  className="btn-primary"
+                  className="btn-primary flex-1 md:flex-initial"
                 >
                   <GitCompare size={15} />
                   Compare
@@ -450,7 +453,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
 
       {/* Floating navigator - shows when the stats bar scrolls away */}
       {showDiff && diffResult && isScrolled && (
-        <div className="fixed right-5 top-1/2 z-50 -translate-y-1/2">
+        <div className="fixed right-2 top-1/2 z-50 -translate-y-1/2 sm:right-5">
           <motion.div
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
@@ -509,11 +512,11 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="min-h-0 flex-1 px-6 pb-6"
+            className="min-h-0 flex-1 px-3 pb-4 sm:px-4 md:pb-6 lg:px-6"
           >
             <div className="flex h-full w-full flex-col">
               {/* Stats Bar */}
-              <div ref={statsBarRef} className="card mb-4 shrink-0 rounded-2xl px-4 py-3">
+              <div ref={statsBarRef} className="card mb-4 shrink-0 rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
                     {diffResult.stats.total === 0 ? (
@@ -606,7 +609,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
             onClick={scrollToTop}
-            className="btn-primary fixed bottom-8 right-8 z-40 !h-12 !w-12 !p-0"
+            className="btn-primary fixed bottom-5 right-5 z-40 !h-11 !w-11 !p-0 sm:bottom-8 sm:right-8 sm:!h-12 sm:!w-12"
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
             title="Back to top"
