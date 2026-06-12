@@ -192,7 +192,7 @@ export default function LineDiffDisplay({
   };
 
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 xl:grid-cols-2">
+    <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-2">
       {renderPanel('left')}
       {renderPanel('right')}
     </div>
