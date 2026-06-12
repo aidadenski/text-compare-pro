@@ -2,15 +2,14 @@
 
 import TextCompare from '@/components/TextCompare';
 import { useState } from 'react';
-import { 
-  CheckCircle, 
-  Zap, 
-  Code, 
-  Shield, 
+import {
+  CheckCircle2,
+  Zap,
+  Code,
+  Shield,
   GitCompare,
   Eye,
-  Palette,
-  Globe
+  Feather,
 } from 'lucide-react';
 
 const features = [
@@ -21,23 +20,23 @@ const features = [
   },
   {
     icon: Code,
-    title: 'Syntax Highlighting',
-    description: 'Support for 10+ languages including JavaScript, Python, SQL, and more',
+    title: 'Format Aware',
+    description: 'Work with JSON, JavaScript, Python, SQL and more — with automatic JSON and SQL formatting',
   },
   {
     icon: Eye,
     title: 'Real-time Comparison',
-    description: 'Instant visual feedback with side-by-side comparison and diff navigation',
+    description: 'Instant visual feedback with side-by-side comparison, synchronized scrolling, and diff navigation',
   },
   {
-    icon: Palette,
-    title: 'Beautiful UI',
-    description: 'Modern glass-morphism design with dark mode support',
+    icon: Feather,
+    title: 'Editorial Design',
+    description: 'A calm ink-and-paper interface that keeps your eyes on the text, in light and dark mode',
   },
   {
     icon: Zap,
     title: 'High Performance',
-    description: 'Optimized for large texts with smart context folding and virtual scrolling',
+    description: 'Optimized for large texts with precise line alignment and efficient diff computation',
   },
   {
     icon: Shield,
@@ -46,10 +45,28 @@ const features = [
   },
 ];
 
+const steps = [
+  {
+    number: '01',
+    title: 'Paste Your Texts',
+    description: 'Simply paste or type your original and modified texts into the input areas',
+  },
+  {
+    number: '02',
+    title: 'Choose Options',
+    description: 'Select diff mode, formatting, and comparison options like ignore case',
+  },
+  {
+    number: '03',
+    title: 'View Results',
+    description: 'See highlighted differences with statistics and navigate through changes',
+  },
+];
+
 const faqItems = [
   {
     question: 'What makes Text Compare Pro different from other diff tools?',
-    answer: 'Text Compare Pro offers advanced features like multiple diff algorithms, syntax highlighting for 10+ languages, real-time formatting, and performance optimization for large texts. Our modern UI with glass-morphism effects provides a premium experience.',
+    answer: 'Text Compare Pro offers advanced features like multiple diff algorithms, support for 10+ formats, real-time formatting, and performance optimization for large texts. Its calm, editorial interface keeps the focus on your text.',
   },
   {
     question: 'Is my text data secure?',
@@ -79,33 +96,41 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Text Compare Tool */}
-      <section className="min-h-screen flex flex-col">
+      <section className="flex min-h-screen flex-col">
         <div className="flex-1">
           <TextCompare onDiffToggle={setShowDiff} />
         </div>
       </section>
 
       {/* Features Section */}
-      <section className={`py-10 px-6 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 transition-all duration-300 ${showDiff ? 'mt-0' : '-mt-32'}`}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Professional Text Comparison Features
+      <section
+        className={`border-t border-hairline px-6 py-24 transition-all duration-300 ${
+          showDiff ? 'mt-0' : '-mt-32'
+        }`}
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-14 text-center">
+            <span className="eyebrow">Why Text Compare Pro</span>
+            <h2 className="mx-auto mt-4 max-w-2xl font-serif text-4xl tracking-tight text-ink md:text-[2.75rem]">
+              Built for careful reading
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Experience the most advanced text comparison tool with features designed for developers, writers, and professionals
+            <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-muted">
+              The most considered text comparison tool, with features designed
+              for developers, writers, and professionals
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="glass-morphism dark:glass-morphism-dark rounded-2xl p-6 hover:scale-105 transition-transform duration-300"
+                className="card group rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1"
               >
-                <feature.icon className="w-10 h-10 mb-3 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">{feature.description}</p>
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-hairline bg-sheet text-ink">
+                  <feature.icon className="h-[18px] w-[18px]" />
+                </div>
+                <h3 className="mb-2 text-[15px] font-semibold text-ink">{feature.title}</h3>
+                <p className="text-sm leading-relaxed text-muted">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -113,70 +138,55 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-6 bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">How Text Compare Pro Works</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              Simple, powerful, and intuitive text comparison in three steps
+      <section className="border-t border-hairline px-6 py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-14 text-center">
+            <span className="eyebrow">How it works</span>
+            <h2 className="mx-auto mt-4 max-w-2xl font-serif text-4xl tracking-tight text-ink md:text-[2.75rem]">
+              Three steps to clarity
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-muted">
+              Simple, powerful, and intuitive text comparison
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                1
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
+            {steps.map((step) => (
+              <div key={step.number} className="border-t border-hairline pt-8">
+                <div className="font-serif text-[3.5rem] italic leading-none text-ink opacity-20">
+                  {step.number}
+                </div>
+                <h3 className="mt-5 text-lg font-semibold text-ink">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  {step.description}
+                </p>
               </div>
-              <h3 className="text-xl font-semibold mb-3">Paste Your Texts</h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                Simply paste or type your original and modified texts into the input areas
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                2
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Choose Options</h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                Select diff mode, formatting, and comparison options like ignore case
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                3
-              </div>
-              <h3 className="text-xl font-semibold mb-3">View Results</h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                See highlighted differences with statistics and navigate through changes
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Frequently Asked Questions</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
+      <section className="border-t border-hairline px-6 py-24">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-14 text-center">
+            <span className="eyebrow">Questions &amp; answers</span>
+            <h2 className="mx-auto mt-4 max-w-2xl font-serif text-4xl tracking-tight text-ink md:text-[2.75rem]">
+              Frequently asked questions
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-muted">
               Everything you need to know about Text Compare Pro
             </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {faqItems.map((item, index) => (
-              <div
-                key={index}
-                className="glass-morphism dark:glass-morphism-dark rounded-2xl p-6"
-              >
-                <h3 className="text-lg font-semibold mb-3 flex items-start gap-3">
-                  <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+              <div key={index} className="card rounded-2xl p-6">
+                <h3 className="flex items-start gap-3 text-[15px] font-semibold text-ink">
+                  <CheckCircle2 className="mt-0.5 h-[18px] w-[18px] shrink-0 text-added" />
                   {item.question}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 ml-9">
+                <p className="ml-[30px] mt-2.5 text-sm leading-relaxed text-muted">
                   {item.answer}
                 </p>
               </div>
@@ -186,25 +196,22 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="mb-6">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Text Compare Pro
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">
-              The professional text comparison tool for developers and writers
-            </p>
-          </div>
-          
-          <div className="flex items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <Globe className="w-4 h-4" />
-            <span>Privacy-first • No data collection • 100% client-side</span>
-          </div>
-          
-          <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-            © 2024 Text Compare Pro. All rights reserved.
-          </div>
+      <footer className="border-t border-hairline px-6 py-14">
+        <div className="mx-auto max-w-7xl text-center">
+          <h3 className="font-serif text-2xl italic text-ink">Text Compare Pro</h3>
+          <p className="mt-2 text-sm text-muted">
+            The professional text comparison tool for developers and writers
+          </p>
+
+          <p className="mt-7 flex flex-wrap items-center justify-center gap-2.5 text-[11px] uppercase tracking-[0.18em] text-muted">
+            <span className="h-1 w-1 rounded-full bg-removed" />
+            Privacy-first · No data collection · 100% client-side
+            <span className="h-1 w-1 rounded-full bg-added" />
+          </p>
+
+          <p className="mt-7 text-xs text-muted">
+            © {new Date().getFullYear()} Text Compare Pro. All rights reserved.
+          </p>
         </div>
       </footer>
     </main>

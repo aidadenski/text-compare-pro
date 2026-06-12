@@ -1,8 +1,26 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://textcompare.pro'),
@@ -60,8 +78,17 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={`${inter.className} antialiased bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 min-h-screen`}>
-        <div className="fixed inset-0 bg-gradient-to-br from-blue-50/50 via-white/50 to-purple-50/50 dark:from-gray-900/50 dark:via-gray-800/50 dark:to-blue-900/50 -z-10" />
+      <body
+        className={`${inter.variable} ${fraunces.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+      >
+        {/* Ambient backdrop: paper texture, manuscript rules and the two
+            quotation marks standing in for the two texts being compared. */}
+        <div aria-hidden className="bg-art">
+          <div className="bg-rules" />
+          <span className="bg-glyph bg-glyph-left font-serif italic">&ldquo;</span>
+          <span className="bg-glyph bg-glyph-right font-serif italic">&rdquo;</span>
+          <div className="bg-noise" />
+        </div>
         {children}
       </body>
     </html>
