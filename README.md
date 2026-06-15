@@ -41,17 +41,23 @@ npm run dev
 ```
 text-compare-pro/
 ├── app/
-│   ├── layout.tsx      # Root layout with SEO metadata
-│   ├── page.tsx        # Home page with features and FAQ
-│   └── globals.css     # Global styles and utilities
+│   ├── layout.tsx          # Root layout, metadata, viewport
+│   ├── page.tsx            # Home page with features and FAQ
+│   ├── content.ts          # Shared marketing copy (page + JSON-LD)
+│   ├── opengraph-image.tsx # Generated Open Graph image
+│   ├── twitter-image.tsx   # Generated Twitter card image
+│   ├── apple-icon.tsx      # Generated iOS home-screen icon
+│   ├── sitemap.ts          # Dynamic sitemap
+│   ├── robots.ts           # Dynamic robots rules
+│   └── globals.css         # Global styles and utilities
 ├── components/
-│   └── TextCompare.tsx # Main comparison component
+│   ├── TextCompare.tsx     # Main comparison component
+│   ├── StructuredData.tsx  # JSON-LD structured data
+│   └── og-template.tsx     # Shared share-image renderer
 ├── utils/
-│   └── diff.ts         # Diff algorithms and utilities
+│   └── diff.ts             # Diff algorithms and utilities
 └── public/
-    ├── robots.txt      # SEO robots file
-    ├── sitemap.xml     # SEO sitemap
-    └── manifest.json   # PWA manifest
+    └── manifest.json       # PWA manifest
 ```
 
 ## Performance Optimizations
@@ -63,11 +69,12 @@ text-compare-pro/
 
 ## SEO Features
 
-- Comprehensive meta tags
-- Open Graph and Twitter cards
-- Structured data for FAQ
-- Sitemap and robots.txt
-- Semantic HTML structure
+- Comprehensive metadata via the Next.js Metadata API (title template, description, canonical)
+- Open Graph and Twitter cards with share images generated on the fly
+- JSON-LD structured data (`WebApplication`, `WebSite`, `FAQPage`) for rich results
+- Dynamic `sitemap.xml` and `robots.txt` routes
+- PWA manifest with adaptive light/dark theme color
+- Semantic HTML with a single `h1` and sectioned headings
 
 ## Browser Support
 
