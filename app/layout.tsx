@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import StructuredData from "@/components/StructuredData";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,30 +25,30 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://textcompare.pro'),
-  title: "Text Compare Pro - Advanced Text Comparison Tool",
+  title: {
+    default: "Text Compare Pro - Advanced Text Comparison Tool",
+    template: "%s · Text Compare Pro",
+  },
   description: "Professional text comparison tool with multiple diff algorithms, syntax highlighting, and advanced features. Compare text, code, JSON, SQL with ease.",
   keywords: "text compare, diff tool, code comparison, json diff, sql compare, text difference, pro text compare",
   authors: [{ name: "Text Compare Pro" }],
+  applicationName: "Text Compare Pro",
+  alternates: {
+    canonical: "/",
+  },
+  manifest: "/manifest.json",
   openGraph: {
     title: "Text Compare Pro - Advanced Text Comparison Tool",
     description: "Professional text comparison tool with multiple diff algorithms and advanced features",
     type: "website",
     url: "https://textcompare.pro",
     siteName: "Text Compare Pro",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Text Compare Pro",
-      },
-    ],
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
     title: "Text Compare Pro - Advanced Text Comparison Tool",
     description: "Professional text comparison tool with multiple diff algorithms and advanced features",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -60,9 +61,20 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  // Set NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION to your real token to emit the
+  // verification meta tag; otherwise no (invalid) tag is rendered.
   verification: {
-    google: "google-site-verification-code",
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f3ec" },
+    { media: "(prefers-color-scheme: dark)", color: "#141311" },
+  ],
 };
 
 export default function RootLayout({
@@ -72,12 +84,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="canonical" href="https://textcompare.pro" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
-      </head>
       <body
         className={`${inter.variable} ${fraunces.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
@@ -90,6 +96,7 @@ export default function RootLayout({
           <div className="bg-noise" />
         </div>
         {children}
+        <StructuredData />
       </body>
     </html>
   );
