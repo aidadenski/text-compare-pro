@@ -334,7 +334,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
 
       {/* Input Section */}
       <div className="mb-4 px-6">
-        <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="relative grid w-full grid-cols-1 gap-5 md:grid-cols-2">
           {renderEditor(1)}
 
           {/* Swap texts */}
@@ -358,7 +358,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="mx-auto mt-5 max-w-7xl"
+          className="mt-5 w-full"
         >
           <div className="card rounded-2xl px-4 py-3.5 md:px-5">
             <div className="flex flex-wrap items-center gap-3">
@@ -511,7 +511,7 @@ export default function TextCompare({ onDiffToggle }: TextCompareProps = {}) {
             exit={{ opacity: 0, y: 20 }}
             className="min-h-0 flex-1 px-6 pb-6"
           >
-            <div className="mx-auto flex h-full max-w-7xl flex-col">
+            <div className="flex h-full w-full flex-col">
               {/* Stats Bar */}
               <div ref={statsBarRef} className="card mb-4 shrink-0 rounded-2xl px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
