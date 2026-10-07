@@ -76,7 +76,11 @@ uv run --with playwright playwright install chromium
 - **他自己的实战**：用该 skill 做的《1 分钟搞懂诺奖中微子研究》发抖音，**5 小时 10 万+ 播放**（当天晚些时候 17 万+），他称之为"短视频起号绝了"。
 - **GitHub**：发布 12 小时 500★ → 1 天 1000+★ → 10-07 傍晚 1,472★，进入当日趋势榜（daily-trending-repo #573 列第 7 位）。
 - **第三方装机/收录**（10-07 当天）：`sudosubin/agents.nix` 打包为 `agent-skills.github.alchaincyf.huashu-art-motion: init at 1.0.0`（pin 到 v1.0.0）；`indie-builder/agent-plugins#27` 收录；`litianyuan90-jack/awesome-claude-code#1` 跟踪；`ProSkillsMD/proskills#7751` 候选收录；第三方实测仓库 `Wyaofox/huashu-art-motion-test`。
-- **用户作业**：X 用户 @linke1427832 反馈"微调了一下，发了 1 个视频涨了快 50 个粉丝"；有转评称"好久没看到如此细腻温馨的画风了"。
+- **用户作业 / 二次传播**：X 用户 @linke1427832 反馈"微调了一下，发了 1 个视频涨了快 50 个粉丝"；有转评称"好久没看到如此细腻温馨的画风了"。
+- **第三方评价（X 搜索时间线，10-07）**：
+  - 英文圈：「a coding-agent skill is trending hard: huashu-art-motion, 1.4k stars in about a day」。
+  - 中文圈：「花叔又出新 Skill 了…10 月 6 日才建仓，已经 700 星」；「花叔最🐂🍺的 Skill 没有之一」——有人**全程本地模型**做了 60 秒视频：Qwen3.8-Flash-Next 125B 写 Canvas 动画代码 + CosyVoice2 克隆音色 + faster-whisper，有效总耗时 1 小时 35 分；也有「今日新鲜 Skills 精选 🆕 ⭐707 ｜增速 707/day」的榜单。
+  - 日文圈：「10分で作った短い動画が3.14万再生」——有人专门写了用法总结（把口播原稿和时长交给它，让它配出对应动画）。
 - **作者的后续承诺**：X 上说他到 **5000+ stars 时会大幅更新**——增加视觉风格，并让 GPT / 国产模型也能做出类似效果。
 
 ### 1.6 注意事项 / 边界
@@ -146,7 +150,20 @@ uv run --with playwright playwright install chromium
 - 其官网作品页 https://www.huasheng.ai/ 与 GitHub Profile README（github.com/alchaincyf）
 - 第三方交叉证据：`szwnba/affweb#812`（转载其 10-07 公众号文章，含"27 万浏览/1000+ 赞/2300+ 收藏""800 star/110 fork"等原文数据）、`marc-ko/daily-trending-repo#573`、`gtdbook/self-ops#2`、`sudosubin/agents.nix#43060`、`indie-builder/agent-plugins#27`、`Wyaofox/huashu-art-motion-test`
 
-## 6. 尚存不确定项
+## 6. 独立复核（对抗性验证）
+
+另起一个独立 agent 做了"尽力证伪"的复核（2026-10-07 ~17:00 UTC），结论：**未发现任何比 huashu-art-motion 更新的花叔开源 skill，主结论 CONFIRMED**。
+
+- 全量枚举其 88 个公开仓库（按创建、按 push 双向排序）：最新创建 = huashu-art-motion（2026-10-06T04:49:37Z）。
+- 其最后一次 push 之后唯一有动静的仓库是 `alchaincyf/alchaincyf`（Profile README，10-07 13:17 仅是徽章刷新），非 skill。
+- `huashu-skills` 总目录：README 无 art-motion 匹配；`skills.json` 的 `updated` 停在 2026-09-06（54 条），仓库最后 push 2026-09-22 —— **连 9-24 的 huashu-flash 也没收录**，属于已知滞后。
+- 发布时间的三种独立验证：仓库创建 10-06 04:49:37Z / 首次提交 `Initial public release` 04:48:47Z / Release v1.0.0 05:38:30Z / 首条预告推文 05:50–06:07Z。
+- 第三方在 10-07 的证据齐备：10 条相关 issue/PR、GitHub 当日趋势榜、第三方实测仓库。
+- 遗留缺口（低风险）：gist 列表接口被权限挡住（无法 100% 排除"某个 skill 只发了 gist"）；X 检索每次最多 20 条，10-07 14:03 UTC 之后若有新推未覆盖，但 GitHub 侧无任何新动作迹象。
+
+原始抓取证据保存在 `research/raw/`（Nitter RSS 时间线 XML、gists 页面 HTML）。
+
+## 7. 尚存不确定项
 
 1. **X 帖原始互动数**（27 万浏览 / 1000+ 赞 / 2300+ 收藏）来自他本人在公众号里的自述，未能从 X 官方接口独立复核（沙箱内 x.com 不可直接抓取，仅能通过 RSS/镜像间接验证发布时间与文案）。
 2. GitHub stars 仍在快速上涨，本报告数字为 **2026-10-07 17:00 UTC** 快照，每小时都在变。

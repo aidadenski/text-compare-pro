@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" type="text/css" href="/css/style.css?v=106" />
+    <link rel="stylesheet" type="text/css" href="/css/fontello.css?v=7" />
+    <link rel="stylesheet" type="text/css" href="/css/themes/nitter.css" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#ff6c60" />
+    <link rel="search" type="application/opensearchdescription+xml" title="nitter.kareem.one" href="https://nitter.kareem.one/opensearch" />
+    <link rel="alternate" href="https://x.com/search/rss?f=live&amp;q=include%3Anativeretweets+since%3A2026-10-06+until%3A2026-10-08+%E5%BC%80%E6%BA%90+from%3AAlchainHust&amp;src=typed_query" title="View on X" />
+    <script src="/js/keybinds.js" defer=""></script>
+    <title>Error | nitter.kareem.one</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="same-origin" />
+    <meta name="theme-color" content="#1F1F1F" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Error" />
+    <meta property="og:description" content="" />
+    <meta property="og:site_name" content="Nitter" />
+    <meta property="og:locale" content="en_US" />
+    <link rel="preload" type="font/woff2" as="font" href="/fonts/fontello.woff2?59696369" crossorigin="anonymous" />
+  </head>
+  <body class="fixed-nav"><a href="https://nitter.kareem.one/cdn-cgi/content?id=6Lt4LPXzaI08i45SRrNXz71uZIKFYFyPUxmpbMXlN2A-1791392599.593992-1.2.1.1-gbNmGVJsh1lYyWCV0Fkl2JQS9WJYWdt9ZpxDa.3oCxrwCrkTw6cmffsEZVa4s19v" aria-hidden="true" rel="nofollow noopener" style="display: none !important; visibility: hidden !important"></a>
+    <nav><div class="inner-nav">
+        <div class="nav-item"><a class="site-name" href="/">nitter.kareem.one</a></div>
+        <div class="search-bar-nav"><form method="get" action="/search" autocomplete="off">
+            <input name="f" value="tweets" style="display: none; " />
+            <input type="search" name="q" placeholder="Search [/]" dir="auto" />
+            <button type="submit"></button>
+          </form></div>
+        <div class="nav-item right">
+          <div class="icon-container"><a class="icon-search" title="Search" href="/search"></a></div>
+          <div class="icon-container"><a class="icon-bird" title="Open in X" href="https://x.com/search/rss?f=live&amp;q=include%3Anativeretweets+since%3A2026-10-06+until%3A2026-10-08+%E5%BC%80%E6%BA%90+from%3AAlchainHust&amp;src=typed_query"></a></div>
+          <a href="https://liberapay.com/zedeus"><svg class="lp" viewBox="0 0 40.6 52.3">
+  <g transform="matrix(0.83,0,0,0.83,-158,-261)">
+    <path d="m202.5,366c-3.1 0-5.5-0.4-7.3-1.2-1.8-0.8-3-1.9-3.8-3.3-0.8-1.4-1.1-3-1.1-4.8 0-1.8 0.3-3.7 0.8-5.8l8.3-34.8 10.2-1.6-9.1 37.8c-0.2 0.8-0.3 1.5-0.3 2.2 0 0.7 0.1 1.2 0.4 1.7 0.3 0.5 0.7 0.9 1.3 1.2 0.6 0.3 1.5 0.5 2.7 0.6l-2 8.1"/>
+    <path d="m239.2 344.3c0 3.2-0.5 6.1-1.6 8.8-1 2.6-2.5 4.9-4.4 6.9-1.9 1.9-4.1 3.4-6.7 4.5-2.6 1.1-5.4 1.6-8.5 1.6-1.5 0-3-0.1-4.5-0.4l-3 11.9h-9.7l10.9-45.4c1.7-0.5 3.7-1 6-1.4 2.3-0.4 4.7-0.6 7.3-0.6 2.4 0 4.6 0.4 6.3 1.1 1.8 0.7 3.2 1.8 4.4 3 1.1 1.3 2 2.8 2.5 4.5 0.5 1.7 0.8 3.6 0.8 5.5m-23.8 13.4c0.7 0.2 1.7 0.3 2.8 0.3 1.7 0 3.3-0.3 4.7-1 1.4-0.6 2.6-1.5 3.6-2.7 1-1.1 1.7-2.5 2.3-4.1 0.5-1.6 0.8-3.4 0.8-5.3 0-1.9-0.4-3.5-1.2-4.8-0.8-1.3-2.3-2-4.3-2-1.4 0-2.7 0.1-3.9 0.4l-4.6 19.1"/>
+  </g>
+</svg>
+</a>
+          <div class="icon-container"><a class="icon-info" title="About" href="/about"></a></div>
+          <div class="icon-container"><a class="icon-cog" title="Preferences" href="/settings?referer=%2Fsearch%2Frss%3Fq%3D%25E5%25BC%2580%25E6%25BA%2590%2Bfrom%253AAlchainHust%26since%3D2026-10-06%26f%3Dtweets%26until%3D2026-10-08"></a></div>
+        </div>
+      </div></nav>
+    <div class="container"><div class="panel-container"><div class="error-panel"><span>Upstream is temporarily unavailable.<br>Use <a href="https://github.com/zedeus/nitter/wiki/Instances">another instance</a> or try again later.</span></div></div></div>
+  <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a46e7a837f7c0c69',t:'MTc5MTM5MjU5OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
